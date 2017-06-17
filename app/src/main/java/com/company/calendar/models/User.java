@@ -1,5 +1,7 @@
 package com.company.calendar.models;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -7,11 +9,45 @@ import java.util.Set;
  * Created by abdul on 17-Jun-17.
  */
 
+@IgnoreExtraProperties
 public class User {
-    private int id;
+
+    public static String USER_TABLE = "users";
+
     private String name;
     private String email;
 
-    ArrayList<Integer> selfCreateEvents;  //events which are create by user itself. If it is deleted, then whole event will be deleted.
-    ArrayList<Integer> extraEvents;       //events which are created by other users. The current user has no control over it.
+    public User() {
+        //this is required. Do not delete
+    }
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+
+
+    public static String encodeString(String string) {
+        return string.replace(".", ",");
+    }
+
+    public static String decodeString(String string) {
+        return string.replace(",", ".");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

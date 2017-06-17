@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.company.calendar.MainActivity;
 import com.company.calendar.R;
+import com.company.calendar.managers.UserManager;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -89,7 +90,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
         }
     }
 
-    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+    private void firebaseAuthWithGoogle(final GoogleSignInAccount acct) {
         //Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
@@ -103,7 +104,10 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                             Toast.makeText(SignInActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         } else {
+                            UserManager manager = new UserManager();
+                            manager.addUserToDB(acct.getDisplayName(), acct.getEmail());
                             startActivity(new Intent(SignInActivity.this, MainActivity.class));
+                            Toast.makeText(SignInActivity.this, "added to database", Toast.LENGTH_LONG).show();
                             finish();
                         }
                     }
