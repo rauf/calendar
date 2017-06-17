@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Calendar</string>
+    <string name="sign_in">Sign In Using Google</string>
+    <string name="confirmed_events">Confirmed Events</string>
+</resources>
