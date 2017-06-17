@@ -2,4 +2,8 @@
     <string name="app_name">Calendar</string>
     <string name="sign_in">Sign In Using Google</string>
     <string name="confirmed_events">Confirmed Events</string>
+    <string name="pending_events">Pending Events</string>
+    <string name="event_name">EVENT NAME</string>
+    <string name="add_event">Add Event</string>
+    <string name="logout">Logout</string>
 </resources>
