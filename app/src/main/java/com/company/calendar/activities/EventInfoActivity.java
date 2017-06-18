@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.company.calendar.R;
+import com.company.calendar.managers.EventManager;
 import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
@@ -34,6 +35,7 @@ public class EventInfoActivity extends AppCompatActivity {
     private String eventId;
     private TextView titleInfo;
     private TextView descriptionInfo;
+    private TextView ownerInfo;
     private RadioGroup responseRadioGroup;
     private RadioButton goingRadioButton;
     private RadioButton notGoingRadioButton;
@@ -41,7 +43,6 @@ public class EventInfoActivity extends AppCompatActivity {
     private RadioButton radioButton;
     private Button editEventButton;
     private Button deleteEventButton;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,7 +61,14 @@ public class EventInfoActivity extends AppCompatActivity {
         populateEventInfo(eventId);
         populateStatusInfo(eventId);
         responseRadioGroup.setOnCheckedChangeListener(postStatusChangeToDb());
+        deleteEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EventManager.deleteEvent(EventInfoActivity.this, eventId);
+            }
+        });
     }
+
 
 
     private RadioGroup.OnCheckedChangeListener postStatusChangeToDb() {
@@ -170,11 +178,11 @@ public class EventInfoActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot snap : dataSnapshot.getChildren()) {
                             if (snap.child(Event.ID_FIELD).getValue().equals(event)) {
-                                String title = (String) snap.child(Event.TITLE_FIELD).getValue();
-                                String description = (String) snap.child(Event.DESCRIPTION_FIELD).getValue();
+                                Event ev = snap.getValue(Event.class);
 
-                                titleInfo.setText(title);
-                                descriptionInfo.setText(description);
+                                titleInfo.setText(ev.getTitle());
+                                descriptionInfo.setText(ev.getDescription());
+                                ownerInfo.setText(User.decodeString(ev.getOwnerEmail()));
                             }
                         }
                     }
@@ -189,6 +197,7 @@ public class EventInfoActivity extends AppCompatActivity {
     private void initialiseViews() {
         titleInfo = (TextView) findViewById(R.id.titleInfo);
         descriptionInfo = (TextView) findViewById(R.id.descriptionInfo);
+        ownerInfo = (TextView) findViewById(R.id.ownerInfo);
         responseRadioGroup = (RadioGroup) findViewById(R.id.responseRadioGroup);
         editEventButton = (Button) findViewById(R.id.editEventButton);
         deleteEventButton = (Button) findViewById(R.id.deleteEventButton);

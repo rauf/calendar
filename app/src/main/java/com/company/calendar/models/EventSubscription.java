@@ -16,6 +16,10 @@ public class EventSubscription {
     private String eventId;
     private String status;
 
+    public EventSubscription() {
+        //required
+    }
+
     public EventSubscription(String userEmail, String eventId, String status) {
         this.userEmail = userEmail;
         this.eventId = eventId;

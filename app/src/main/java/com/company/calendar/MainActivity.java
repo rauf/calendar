@@ -64,18 +64,68 @@ public class MainActivity extends AppCompatActivity {
 
     void updateLists() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
-        ref.addListenerForSingleValueEvent(
+        final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+
+        ref.addValueEventListener(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
 
-                        if (dataSnapshot.getValue() == null)
+                        /*if (dataSnapshot.getValue() == null)
                             return;
 
                         ArrayList<EventSubscription> allSubs = EventSubscriptionManager.getAllSubscriptionsFromDb((Map<String, Object>) dataSnapshot.getValue());
                         String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
                         ArrayList<EventSubscription> currUserSubs = EventSubscriptionManager.filterCurrentUserSubs(allSubs, currUser);
-                        setUpRecyclerViews(currUserSubs);
+                        setUpRecyclerViews(currUserSubs);*/
+
+                        final ArrayList<Event> gEvents = new ArrayList<>();
+                        final ArrayList<Event> pEvents = new ArrayList<>();
+
+                        if (dataSnapshot == null) {
+                            setRecyclerViews(gEvents, pEvents);
+                            return;
+                        }
+
+                        for (final DataSnapshot sub : dataSnapshot.getChildren()) {
+
+                            final EventSubscription eventSubscription = sub.getValue(EventSubscription.class);
+
+                            if (!eventSubscription.getUserEmail().equals(currUser)) {
+                                continue;
+                            }
+
+                            DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+                            eventRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                    for (DataSnapshot snap : dataSnapshot.getChildren()) {
+
+                                        final Event ev = snap.getValue(Event.class);
+
+                                        if (!ev.getId().equals(eventSubscription.getEventId())) {
+                                            continue;
+                                        }
+
+                                        if (eventSubscription.getStatus().equals(Event.GOING)) {
+                                            gEvents.add(ev);
+                                        } else {
+                                            pEvents.add(ev);
+                                        }
+                                    }
+
+                                    setRecyclerViews(gEvents, pEvents);
+                                    Toast.makeText(MainActivity.this, "All Events Retrieved", LENGTH_SHORT).show();
+
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
                     }
 
                     @Override
@@ -85,43 +135,49 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    private void setRecyclerViews(ArrayList<Event> gEvents, ArrayList<Event> pEvents) {
+        EventRecyclerViewAdapter goingAdapter = new EventRecyclerViewAdapter(gEvents, MainActivity.this);
+        EventRecyclerViewAdapter pendingAdapter = new EventRecyclerViewAdapter(pEvents, MainActivity.this);
+
+        confirmedEventsRecyclerView.setAdapter(goingAdapter);
+        pendingEventsRecyclerView.setAdapter(pendingAdapter);
+        confirmedEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        pendingEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+    }
+
     private void setUpRecyclerViews(ArrayList<EventSubscription> currUserSubs) {
-        final ArrayList<Event> gEvents = new ArrayList<>();
-        final ArrayList<Event> pEvents = new ArrayList<>();
 
         Toast.makeText(MainActivity.this, "Retrieving events: " + currUserSubs.size(), Toast.LENGTH_SHORT).show();
         DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+        final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
         for (final EventSubscription sub : currUserSubs) {
             eventRef
                     .addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
+                            final ArrayList<Event> gEvents = new ArrayList<>();
+                            final ArrayList<Event> pEvents = new ArrayList<>();
+
                             for (DataSnapshot snap : dataSnapshot.getChildren()) {
 
-                                final Event event = new Event((String) snap.child(Event.ID_FIELD).getValue(),
-                                        (String) snap.child(Event.TITLE_FIELD).getValue(),
-                                        (String) snap.child(Event.DESCRIPTION_FIELD).getValue(),
-                                        (String) snap.child(Event.OWNER_EMAIL_FIELD).getValue());
+                                final Event ev = snap.getValue(Event.class);
 
-                                //String s = (String) snap.child(EventSubscription.STATUS_FIELD).getValue();
-                                if (sub.getStatus() != null && sub.getStatus().equals(Event.GOING)) {
-                                    gEvents.add(event);
+                                if (!ev.getId().equals(sub.getEventId())) {
+                                    continue;
                                 }
-                                else {
-                                    pEvents.add(event);
+
+                                if (sub.getStatus().equals(Event.GOING)) {
+                                    gEvents.add(ev);
+                                } else {
+                                    pEvents.add(ev);
                                 }
                             }
 
-                            EventRecyclerViewAdapter goingAdapter = new EventRecyclerViewAdapter(gEvents, MainActivity.this);
-                            EventRecyclerViewAdapter pendingAdapter = new EventRecyclerViewAdapter(pEvents, MainActivity.this);
-
-                            confirmedEventsRecyclerView.setAdapter(goingAdapter);
-                            pendingEventsRecyclerView.setAdapter(pendingAdapter);
-                            confirmedEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-                            pendingEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+                            setRecyclerViews(gEvents, pEvents);
                             Toast.makeText(MainActivity.this, "All Events Retrieved", LENGTH_SHORT).show();
                         }
+
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
                             Toast.makeText(MainActivity.this, "Call to Database failed", LENGTH_SHORT).show();
