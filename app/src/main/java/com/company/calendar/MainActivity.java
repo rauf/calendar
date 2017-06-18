@@ -3,6 +3,7 @@ package com.company.calendar;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,8 +11,24 @@ import android.widget.Toast;
 
 import com.company.calendar.activities.AddEventActivity;
 import com.company.calendar.activities.SignInActivity;
+import com.company.calendar.adapters.EventRecyclerViewAdapter;
+import com.company.calendar.managers.EventSubscriptionManager;
+import com.company.calendar.models.Event;
+import com.company.calendar.models.EventSubscription;
+import com.company.calendar.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Map;
+
+import static android.widget.Toast.LENGTH_SHORT;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,9 +61,81 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    void updateLists() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+        ref.addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        if (dataSnapshot.getValue() == null)
+                            return;
+
+                        ArrayList<EventSubscription> allSubs = EventSubscriptionManager.getAllSubscriptionsFromDb((Map<String, Object>) dataSnapshot.getValue());
+                        String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+                        ArrayList<EventSubscription> currUserSubs = EventSubscriptionManager.filterCurrentUserSubs(allSubs, currUser);
+                        setUpRecyclerViews(currUserSubs);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(MainActivity.this, "Cannot retrieve events", Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void setUpRecyclerViews(ArrayList<EventSubscription> currUserSubs) {
+        final ArrayList<Event> gEvents = new ArrayList<>();
+        final ArrayList<Event> pEvents = new ArrayList<>();
+
+        Toast.makeText(MainActivity.this, "Retrieving events: " + currUserSubs.size(), Toast.LENGTH_SHORT).show();
+        DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+
+        for (final EventSubscription sub : currUserSubs) {
+            eventRef
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot snap : dataSnapshot.getChildren()) {
+
+                                final Event event = new Event((String) snap.child(Event.ID_FIELD).getValue(),
+                                        (String) snap.child(Event.TITLE_FIELD).getValue(),
+                                        (String) snap.child(Event.DESCRIPTION_FIELD).getValue(),
+                                        (String) snap.child(Event.OWNER_EMAIL_FIELD).getValue());
+
+                                //String s = (String) snap.child(EventSubscription.STATUS_FIELD).getValue();
+                                if (sub.getStatus() != null && sub.getStatus().equals(Event.GOING)) {
+                                    gEvents.add(event);
+                                }
+                                else {
+                                    pEvents.add(event);
+                                }
+                            }
+
+                            EventRecyclerViewAdapter goingAdapter = new EventRecyclerViewAdapter(gEvents);
+                            EventRecyclerViewAdapter pendingAdapter = new EventRecyclerViewAdapter(pEvents);
+
+                            confirmedEventsRecyclerView.setAdapter(goingAdapter);
+                            pendingEventsRecyclerView.setAdapter(pendingAdapter);
+                            confirmedEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+                            pendingEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+                            Toast.makeText(MainActivity.this, "All Events Retrieved", LENGTH_SHORT).show();
+                        }
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Toast.makeText(MainActivity.this, "Call to Database failed", LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+
     @Override
     protected void onStart() {
         super.onStart();
+
+        updateLists();
         //firebaseAuth.addAuthStateListener(authListener);
     }
 

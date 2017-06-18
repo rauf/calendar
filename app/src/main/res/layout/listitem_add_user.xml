@@ -4,10 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/event_name"
+    <CheckBox
+        android:id="@+id/addUser"
         android:layout_width="match_parent"
-        android:layout_height="25dp"
-        android:text="@string/event_name"
-        android:textSize="16sp" />
+        android:layout_height="wrap_content"
+        android:text="@string/user_name" />
 </LinearLayout>

@@ -13,6 +13,8 @@ import java.util.Set;
 public class User {
 
     public static String USER_TABLE = "users";
+    public static String NAME_FIELD = "name";
+    public static String EMAIL_FIELD = "email";
 
     private String name;
     private String email;

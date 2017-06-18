@@ -6,4 +6,12 @@
     <string name="event_name">EVENT NAME</string>
     <string name="add_event">Add Event</string>
     <string name="logout">Logout</string>
+    <string name="user_name">USer name</string>
+    <string name="users_invite">Select the users to invite to this event</string>
+    <string name="save_event">Save Event</string>
+    <string name="date_and_time">Date and Time</string>
+    <string name="time">Time</string>
+    <string name="date">Date</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
 </resources>

@@ -3,8 +3,6 @@ package com.company.calendar.models;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 import java.util.ArrayList;
-import java.util.Set;
-import java.util.StringTokenizer;
 
 /**
  * Created by abdul on 17-Jun-17.
@@ -13,39 +11,48 @@ import java.util.StringTokenizer;
 @IgnoreExtraProperties
 public class Event {
 
-    private static String GOING = "GOING";
-    private static String NOT_GOING = "NOT_GOING";
-    private static String MAYBE_GOING = "MAYBE_GOING";
-    private static String UNCONFIRMED = "UNCONFIRMED";
+    public static String EVENT_TABLE = "events";
 
-    private int id;
+    public static String GOING = "GOING";
+    public static String NOT_GOING = "NOT_GOING";
+    public static String MAYBE_GOING = "MAYBE_GOING";
+    public static String UNCONFIRMED = "UNCONFIRMED";
+
+    public static String ID_FIELD = "id";
+    public static String TITLE_FIELD = "title";
+    public static String DESCRIPTION_FIELD = "description";
+    public static String OWNER_EMAIL_FIELD = "ownerEmail";
+
+    private String id;
     //check date and time compatibility with firebase
 
     private String title;
     private String description;
     private String ownerEmail;
+/*
 
     private ArrayList<String> goingUsers;
-    private ArrayList<String> notgoingUsers;
+    private ArrayList<String> notGoingUsers;
     private ArrayList<String> maybeGoingUsers;
     private ArrayList<String> notRespondedUsers;
+*/
 
     public Event() {
         //required. Do not delete
     }
 
-    public Event(int id, String title, String description, String ownerEmail) {
+    public Event(String id, String title, String description, String ownerEmail) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ownerEmail = ownerEmail;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -72,7 +79,7 @@ public class Event {
     public void setOwnerEmail(String ownerEmail) {
         this.ownerEmail = ownerEmail;
     }
-
+/*
     public ArrayList<String> getGoingUsers() {
         return goingUsers;
     }
@@ -81,12 +88,12 @@ public class Event {
         this.goingUsers = goingUsers;
     }
 
-    public ArrayList<String> getNotgoingUsers() {
-        return notgoingUsers;
+    public ArrayList<String> getNotGoingUsers() {
+        return notGoingUsers;
     }
 
-    public void setNotgoingUsers(ArrayList<String> notgoingUsers) {
-        this.notgoingUsers = notgoingUsers;
+    public void setNotGoingUsers(ArrayList<String> notGoingUsers) {
+        this.notGoingUsers = notGoingUsers;
     }
 
     public ArrayList<String> getMaybeGoingUsers() {
@@ -104,4 +111,5 @@ public class Event {
     public void setNotRespondedUsers(ArrayList<String> notRespondedUsers) {
         this.notRespondedUsers = notRespondedUsers;
     }
+    */
 }

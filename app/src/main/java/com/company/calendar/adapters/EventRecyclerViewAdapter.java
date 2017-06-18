@@ -1,6 +1,5 @@
 package com.company.calendar.adapters;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,17 +15,14 @@ import java.util.ArrayList;
  * Created by abdul on 17-Jun-17.
  */
 
-public class EventRecyclerView extends RecyclerView.Adapter<EventRecyclerView.EventItemViewHolder> {
+public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecyclerViewAdapter.EventItemViewHolder> {
 
 
     private ArrayList<Event> eventsSet;
-    private Context context;
 
-    public EventRecyclerView(Context context, ArrayList<Event> events) {
-        this.context = context;
+    public EventRecyclerViewAdapter(ArrayList<Event> events) {
         this.eventsSet = events;
     }
-
 
     @Override
     public EventItemViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -40,7 +36,7 @@ public class EventRecyclerView extends RecyclerView.Adapter<EventRecyclerView.Ev
     public void onBindViewHolder(EventItemViewHolder holder, int position) {
         final Event singleEvent = eventsSet.get(position);
 
-        holder.eventName.setText("<EVENT NAME>");
+        holder.eventName.setText(singleEvent.getTitle() + "   " + singleEvent.getOwnerEmail());
     }
 
     @Override

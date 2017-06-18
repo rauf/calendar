@@ -104,8 +104,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                             Toast.makeText(SignInActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            UserManager manager = new UserManager();
-                            manager.addUserToDB(acct.getDisplayName(), acct.getEmail());
+                            UserManager.addUserToDB(acct.getDisplayName(), acct.getEmail());
                             startActivity(new Intent(SignInActivity.this, MainActivity.class));
                             Toast.makeText(SignInActivity.this, "added to database", Toast.LENGTH_LONG).show();
                             finish();
