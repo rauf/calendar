@@ -10,6 +10,10 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class EventManager {
 
+    private EventManager() {
+        //private, cannot be instantiated
+    }
+
     public static String addEventToDb(String title, String description, String ownerEmail) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
@@ -19,4 +23,15 @@ public class EventManager {
         db.child(key).setValue(event);
         return key;
     }
+
+/*
+    public static Event getEventFromDb(String eventId) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+
+        String str = db.equalTo(eventId);
+
+
+    }
+*/
+
 }

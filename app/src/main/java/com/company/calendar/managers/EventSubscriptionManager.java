@@ -15,6 +15,10 @@ import java.util.Map;
 
 public class EventSubscriptionManager {
 
+    private EventSubscriptionManager() {
+        //private, cannot be instantiated
+    }
+
     public static void addSubscriptionToDb(ArrayList<String> users, String eventId, String currUser) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 

@@ -13,15 +13,15 @@ public class Event {
 
     public static String EVENT_TABLE = "events";
 
-    public static String GOING = "GOING";
-    public static String NOT_GOING = "NOT_GOING";
-    public static String MAYBE_GOING = "MAYBE_GOING";
-    public static String UNCONFIRMED = "UNCONFIRMED";
+    public static final String GOING = "GOING";
+    public static final String NOT_GOING = "NOT_GOING";
+    public static final String MAYBE_GOING = "MAYBE_GOING";
+    public static final String UNCONFIRMED = "UNCONFIRMED";
 
-    public static String ID_FIELD = "id";
-    public static String TITLE_FIELD = "title";
-    public static String DESCRIPTION_FIELD = "description";
-    public static String OWNER_EMAIL_FIELD = "ownerEmail";
+    public static final String ID_FIELD = "id";
+    public static final String TITLE_FIELD = "title";
+    public static final String DESCRIPTION_FIELD = "description";
+    public static final String OWNER_EMAIL_FIELD = "ownerEmail";
 
     private String id;
     //check date and time compatibility with firebase

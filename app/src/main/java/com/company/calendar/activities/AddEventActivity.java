@@ -113,7 +113,7 @@ public class AddEventActivity extends AppCompatActivity{
 
     void setUserList() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("users");
-        ref.addListenerForSingleValueEvent(
+        ref.addValueEventListener(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {

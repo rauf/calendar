@@ -14,4 +14,7 @@
     <string name="date">Date</string>
     <string name="title">Title</string>
     <string name="description">Description</string>
+    <string name="not_going">Not Going</string>
+    <string name="going">Going</string>
+    <string name="maybe_going">Maybe Going</string>
 </resources>

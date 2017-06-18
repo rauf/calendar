@@ -1,5 +1,7 @@
 package com.company.calendar.adapters;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.company.calendar.R;
+import com.company.calendar.activities.AddEventActivity;
+import com.company.calendar.activities.EventInfoActivity;
 import com.company.calendar.models.Event;
 
 import java.util.ArrayList;
@@ -19,9 +23,11 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
 
 
     private ArrayList<Event> eventsSet;
+    private Context context;
 
-    public EventRecyclerViewAdapter(ArrayList<Event> events) {
-        this.eventsSet = events;
+    public EventRecyclerViewAdapter(ArrayList<Event> eventsSet, Context context) {
+        this.eventsSet = eventsSet;
+        this.context = context;
     }
 
     @Override
@@ -33,10 +39,18 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
     }
 
     @Override
-    public void onBindViewHolder(EventItemViewHolder holder, int position) {
+    public void onBindViewHolder(final EventItemViewHolder holder, int position) {
         final Event singleEvent = eventsSet.get(position);
 
         holder.eventName.setText(singleEvent.getTitle() + "   " + singleEvent.getOwnerEmail());
+        holder.eventName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(context, EventInfoActivity.class);
+                i.putExtra(EventInfoActivity.EVENT_ID, singleEvent.getId());
+                context.startActivity(i);
+            }
+        });
     }
 
     @Override

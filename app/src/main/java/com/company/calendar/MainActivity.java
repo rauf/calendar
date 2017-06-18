@@ -113,8 +113,8 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
 
-                            EventRecyclerViewAdapter goingAdapter = new EventRecyclerViewAdapter(gEvents);
-                            EventRecyclerViewAdapter pendingAdapter = new EventRecyclerViewAdapter(pEvents);
+                            EventRecyclerViewAdapter goingAdapter = new EventRecyclerViewAdapter(gEvents, MainActivity.this);
+                            EventRecyclerViewAdapter pendingAdapter = new EventRecyclerViewAdapter(pEvents, MainActivity.this);
 
                             confirmedEventsRecyclerView.setAdapter(goingAdapter);
                             pendingEventsRecyclerView.setAdapter(pendingAdapter);

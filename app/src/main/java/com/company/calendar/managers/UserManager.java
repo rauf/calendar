@@ -14,6 +14,10 @@ import java.util.Map;
 
 public class UserManager {
 
+    private UserManager() {
+        //private, cannot be instantiated
+    }
+
     private static String TAG = "UserManager";
 
     public static void addUserToDB(String name, final String email) {
