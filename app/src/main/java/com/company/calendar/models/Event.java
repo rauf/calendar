@@ -20,6 +20,7 @@ public class Event {
     public static final String TITLE_FIELD = "title";
     public static final String DESCRIPTION_FIELD = "description";
     public static final String OWNER_EMAIL_FIELD = "ownerEmail";
+    public static final String ALARM_ID_FIELD = "alarmId";
 
     private String id;
     //check date and time compatibility with firebase
@@ -39,12 +40,29 @@ public class Event {
         //required. Do not delete
     }
 
-    public Event(String id, String title, String description, String ownerEmail, int alarmId) {
+    public Event(String id, String title, String description, String ownerEmail, int alarmId, int year, int month, int date, int hour, int minute) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ownerEmail = ownerEmail;
         this.alarmId = alarmId;
+        this.year = year;
+        this.month = month;
+        this.date = date;
+        this.hour = hour;
+        this.minute = minute;
+    }
+
+    public Event(String title, String description, String ownerEmail, int alarmId, int year, int month, int date, int hour, int minute) {
+        this.title = title;
+        this.description = description;
+        this.ownerEmail = ownerEmail;
+        this.alarmId = alarmId;
+        this.year = year;
+        this.month = month;
+        this.date = date;
+        this.hour = hour;
+        this.minute = minute;
     }
 
     public String getId() {

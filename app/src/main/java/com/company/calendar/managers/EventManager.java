@@ -3,7 +3,6 @@ package com.company.calendar.managers;
 import android.content.Context;
 import android.widget.Toast;
 
-import com.company.calendar.activities.EventInfoActivity;
 import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
@@ -24,6 +23,8 @@ public class EventManager {
         //private, cannot be instantiated
     }
 
+/*
+
     public static String addEventToDb(String title, String description, String ownerEmail, int alarmId) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
@@ -33,7 +34,17 @@ public class EventManager {
         db.child(key).setValue(event);
         return key;
     }
+*/
 
+    public static String addEventToDb(Event event) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+
+        String key = db.push().getKey();
+
+        event.setId(key);
+        db.child(key).setValue(event);
+        return key;
+    }
 
     public static void deleteEvent(final Context context, final String eventId) {
 

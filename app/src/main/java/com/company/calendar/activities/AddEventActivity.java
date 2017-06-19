@@ -1,9 +1,10 @@
 package com.company.calendar.activities;
 
-import android.content.DialogInterface;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,10 +18,12 @@ import android.widget.Toast;
 
 import com.company.calendar.R;
 import com.company.calendar.adapters.UserRecyclerViewAdapter;
+import com.company.calendar.managers.AlarmHelper;
 import com.company.calendar.managers.EventManager;
 import com.company.calendar.managers.EventSubscriptionManager;
 import com.company.calendar.managers.UserManager;
 import com.company.calendar.models.AlarmCounter;
+import com.company.calendar.models.Event;
 import com.company.calendar.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -40,7 +43,8 @@ import java.util.Map;
 
 public class AddEventActivity extends AppCompatActivity {
 
-    private Calendar rightNow;
+    public static String EDIT_EVENT_MODE = "editMode";
+
     private ArrayList<User> userList;
     private UserRecyclerViewAdapter userAdapter;
     private RecyclerView userRecyclerView;
@@ -49,13 +53,17 @@ public class AddEventActivity extends AppCompatActivity {
     private TextView dateTextBox;
     private TextView timeTextBox;
     private Button addEventButton;
+    private boolean editMode;
+    private String eventId;
 
     private int hour = 0;
     private int minutes = 0;
 
-    private int date = 0;
-    private int month = 0;
+    private int date = 0;           //day is 1 indexed 1-31
+    private int month = 0;          //month is 0 indexed 0-11
     private int year = 0;
+
+    private int alarmId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,7 +73,19 @@ public class AddEventActivity extends AppCompatActivity {
         intitialiseViews();
         setUserList();
 
-        rightNow = Calendar.getInstance();
+        Intent recvIntent = getIntent();
+
+        editMode = recvIntent.getBooleanExtra(EDIT_EVENT_MODE, false);
+        alarmId = recvIntent.getIntExtra(Event.ALARM_ID_FIELD, 0);
+
+        if (editMode) {
+            eventId = recvIntent.getStringExtra(Event.ID_FIELD);
+            populateFieldsFromSavedEvent();
+        } else {
+            setDateTimeVariablesToCurrent();
+            dateTextBox.setText(getDateString());
+            timeTextBox.setText(getTimeString());
+        }
 
         addEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,6 +109,38 @@ public class AddEventActivity extends AppCompatActivity {
         });
     }
 
+    private void populateFieldsFromSavedEvent() {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+
+        db.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    Event event = snap.getValue(Event.class);
+
+                    if (event.getId().equals(eventId)) {
+                        titleEditText.setText(event.getTitle());
+                        descriptionEditText.setText(event.getDescription());
+
+                        hour = event.getHour();
+                        minutes = event.getMinute();
+                        year = event.getYear();
+                        month = event.getMonth();
+                        date = event.getDate();
+
+                        dateTextBox.setText(getDateString());
+                        timeTextBox.setText(getTimeString());
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void handleAddEventClick() {
         final String title = titleEditText.getText().toString().trim();
         final String description = descriptionEditText.getText().toString().trim();
@@ -108,7 +160,13 @@ public class AddEventActivity extends AppCompatActivity {
                 int alarmId = data.getValue(Integer.class);
                 alarmCounter.setValue(alarmId + 1);
 
-                String key = EventManager.addEventToDb(title, description, currUser, alarmId);
+                Event event = new Event(title, description, currUser, alarmId, year, month, date, hour, minutes);
+
+                if (editMode) {
+                    EventManager.deleteEvent(AddEventActivity.this, eventId);
+                    AlarmHelper.cancelAlarm(AddEventActivity.this, AddEventActivity.this.alarmId);
+                }
+                String key = EventManager.addEventToDb(event);
 
                 //AlarmHelper.setAlarm(AddEventActivity.this, title, eventId, alarmId, year, month, date, hour, minutes);
                 Toast.makeText(AddEventActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
@@ -140,7 +198,7 @@ public class AddEventActivity extends AppCompatActivity {
                                 userList.remove(i);             //you cannot invite yourself
                             }
                         }
-                        userAdapter = new UserRecyclerViewAdapter(userList);
+                        userAdapter = new UserRecyclerViewAdapter(userList, editMode, eventId);
                         userRecyclerView.setAdapter(userAdapter);
                         userRecyclerView.setLayoutManager(new LinearLayoutManager(AddEventActivity.this));
                     }
@@ -154,16 +212,47 @@ public class AddEventActivity extends AppCompatActivity {
 
 
     private void showTimePicker() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(AddEventActivity.this);
-        builder.setView(R.layout.dialog_time_picker)
-                .setPositiveButton("Select", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(AddEventActivity.this, "TODO", Toast.LENGTH_LONG).show();
-                    }
-                })
-                .create()
-                .show();
+        TimePickerDialog timePickerDialog = new TimePickerDialog(AddEventActivity.this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                hour = hourOfDay;
+                AddEventActivity.this.minutes = minute;
+                timeTextBox.setText(getTimeString());
+            }
+        }, hour, minutes, true);
+        timePickerDialog.setTitle("Select Time");
+        timePickerDialog.show();
+    }
+
+    private void showDatePicker() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(AddEventActivity.this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                AddEventActivity.this.year = year;
+                AddEventActivity.this.month = month;
+                AddEventActivity.this.date = dayOfMonth;
+                dateTextBox.setText(getDateString());
+            }
+        }, year, month, date);
+        datePickerDialog.setTitle("Select Date");
+        datePickerDialog.show();
+    }
+
+    private void setDateTimeVariablesToCurrent() {
+        Calendar rightNow = Calendar.getInstance();
+        hour = rightNow.get(Calendar.HOUR_OF_DAY);
+        minutes = rightNow.get(Calendar.MINUTE);
+        date = rightNow.get(Calendar.DAY_OF_MONTH);
+        month = rightNow.get(Calendar.MONTH);
+        year = rightNow.get(Calendar.YEAR);
+    }
+
+    private String getDateString() {
+        return date + " / " + (month + 1) + " / " + year;
+    }
+
+    private String getTimeString() {
+        return hour + " : " + minutes;
     }
 
     private void intitialiseViews() {
@@ -174,44 +263,4 @@ public class AddEventActivity extends AppCompatActivity {
         timeTextBox = (TextView) findViewById(R.id.timeTextBox);
         addEventButton = (Button) findViewById(R.id.addEvent);
     }
-
-    private void showDatePicker() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(AddEventActivity.this);
-        builder.setView(R.layout.dialog_date_picker)
-                .setPositiveButton("Select", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(AddEventActivity.this, "TODO", Toast.LENGTH_LONG).show();
-                    }
-                })
-                .create()
-                .show();
-    }
-
-    private void setDateTimeVariablesToCurrent() {
-        hour = rightNow.get(Calendar.HOUR_OF_DAY);
-        minutes = rightNow.get(Calendar.MINUTE);
-        date = rightNow.get(Calendar.DAY_OF_MONTH);
-        month = rightNow.get(Calendar.MONTH);
-        year = rightNow.get(Calendar.YEAR);
-    }
-
-    private void setDateTimeVariables(DatePicker date, TimePicker time) {
-        //hour = time.get();
-        //minutes = time.getMinute();
-    }
-
-    private void displayDateTimeDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-        builder.setTitle("Select Date and Time")
-                .setView(R.layout.dialog_date_picker)
-                .setPositiveButton("Select", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .create();
-    }
-
 }

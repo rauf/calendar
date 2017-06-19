@@ -40,9 +40,9 @@ public class EventInfoActivity extends AppCompatActivity {
     private RadioButton goingRadioButton;
     private RadioButton notGoingRadioButton;
     private RadioButton maybeGoingRadioButton;
-    private RadioButton radioButton;
     private Button editEventButton;
     private Button deleteEventButton;
+    private int alarmId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,6 +52,7 @@ public class EventInfoActivity extends AppCompatActivity {
         Intent receivedIntent = getIntent();
 
         eventId = receivedIntent.getStringExtra(EVENT_ID);
+        alarmId = receivedIntent.getIntExtra(Event.ALARM_ID_FIELD, 0);
 
         if (eventId == null) {
             Toast.makeText(EventInfoActivity.this, "Event Id not received by this activity. Closing it", Toast.LENGTH_SHORT).show();
@@ -68,6 +69,18 @@ public class EventInfoActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        editEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent in = new Intent(EventInfoActivity.this, AddEventActivity.class);
+                in.putExtra(AddEventActivity.EDIT_EVENT_MODE, true);
+                in.putExtra(Event.ID_FIELD, eventId);
+                in.putExtra(Event.ALARM_ID_FIELD, alarmId);
+                startActivity(in);
+                finish();
+            }
+        });
     }
 
 
@@ -79,10 +92,9 @@ public class EventInfoActivity extends AppCompatActivity {
 
                 final String status = getStatusFromRadioSelect(selectedId);
                 final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
-
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 
-                Toast.makeText(EventInfoActivity.this, "Saving your response", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(EventInfoActivity.this, "Saving your response", Toast.LENGTH_SHORT).show();
 
                 ref.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -123,24 +135,21 @@ public class EventInfoActivity extends AppCompatActivity {
 
 
     private void populateStatusInfo(final String event) {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
         ref
                 //.equalTo(event)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+                .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot snap : dataSnapshot.getChildren()) {
 
-                            String user = (String) snap.child(EventSubscription.USER_EMAIL_FIELD).getValue();
-                            String ev = (String) snap.child(EventSubscription.EVENT_ID_FIELD).getValue();
+                            EventSubscription sub = snap.getValue(EventSubscription.class);
 
-                            if (ev.equals(event) && user.equals(currUser)) {
-
-                                String status = (String) snap.child(EventSubscription.STATUS_FIELD).getValue();
-                                updataRadioButtons(status);
+                            if (sub.getEventId().equals(event) && sub.getUserEmail().equals(currUser)) {
+                                updataRadioButtons(sub.getStatus());
                             }
                         }
                     }

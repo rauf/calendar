@@ -7,6 +7,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.company.calendar.activities.AddEventActivity;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private String userName;
     private RecyclerView confirmedEventsRecyclerView;
     private RecyclerView pendingEventsRecyclerView;
+    private Button addEventButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,14 @@ public class MainActivity extends AppCompatActivity {
             userName = firebaseUser.getDisplayName();
         }
 
+        addEventButton = (Button) findViewById(R.id.addEventButton);
+        addEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AddEventActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
 
@@ -69,14 +80,6 @@ public class MainActivity extends AppCompatActivity {
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-
-                        /*if (dataSnapshot.getValue() == null)
-                            return;
-
-                        ArrayList<EventSubscription> allSubs = EventSubscriptionManager.getAllSubscriptionsFromDb((Map<String, Object>) dataSnapshot.getValue());
-                        String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
-                        ArrayList<EventSubscription> currUserSubs = EventSubscriptionManager.filterCurrentUserSubs(allSubs, currUser);
-                        setUpRecyclerViews(currUserSubs);*/
 
                         final ArrayList<Event> gEvents = new ArrayList<>();
                         final ArrayList<Event> pEvents = new ArrayList<>();
@@ -212,11 +215,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.addEvent:
-                Intent i = new Intent(this, AddEventActivity.class);
-                startActivity(i);
-                return true;
-
             case R.id.logout:
                 firebaseAuth.signOut();
                 Toast.makeText(MainActivity.this, "You are logged out. ", Toast.LENGTH_LONG).show();

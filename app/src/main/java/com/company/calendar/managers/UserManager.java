@@ -31,11 +31,11 @@ public class UserManager {
         userTable.child(encodedEmail).setValue(user);
     }
 
-    public static ArrayList<User> getAllUsersFromDb(Map<String,Object> map) {
+    public static ArrayList<User> getAllUsersFromDb(Map<String, Object> map) {
 
         ArrayList<User> users = new ArrayList<>();
 
-        for (Map.Entry<String, Object> entry : map.entrySet()){
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             Map singleUser = (Map) entry.getValue();
             users.add(new User((String) singleUser.get(User.NAME_FIELD), (String) singleUser.get(User.EMAIL_FIELD)));
         }

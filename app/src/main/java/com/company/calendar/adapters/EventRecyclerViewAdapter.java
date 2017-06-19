@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.company.calendar.R;
-import com.company.calendar.activities.AddEventActivity;
 import com.company.calendar.activities.EventInfoActivity;
 import com.company.calendar.models.Event;
 
@@ -48,6 +47,7 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
             public void onClick(View v) {
                 Intent i = new Intent(context, EventInfoActivity.class);
                 i.putExtra(EventInfoActivity.EVENT_ID, singleEvent.getId());
+                i.putExtra(Event.ALARM_ID_FIELD, singleEvent.getAlarmId());
                 context.startActivity(i);
             }
         });

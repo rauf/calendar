@@ -30,7 +30,7 @@ import com.google.firebase.auth.GoogleAuthProvider;
  * Created by abdul on 17-Jun-17.
  */
 
-public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener{
+public class SignInActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;

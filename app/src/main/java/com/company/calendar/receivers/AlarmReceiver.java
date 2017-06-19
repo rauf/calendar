@@ -21,7 +21,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         String title = intent.getStringExtra(Event.TITLE_FIELD);
         Toast.makeText(context, "Time for event : " + title + "  Deleting the event now", Toast.LENGTH_LONG).show();
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        vibrator.vibrate(2000);
+        //vibrator.vibrate(2000);
         //EventManager.deleteEvent(context, eventId);
     }
 }

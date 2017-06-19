@@ -2,9 +2,6 @@ package com.company.calendar.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.ArrayList;
-import java.util.Set;
-
 /**
  * Created by abdul on 17-Jun-17.
  */
