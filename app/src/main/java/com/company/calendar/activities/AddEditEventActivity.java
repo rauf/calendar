@@ -41,7 +41,7 @@ import java.util.Map;
  * Created by abdul on 17-Jun-17.
  */
 
-public class AddEventActivity extends AppCompatActivity {
+public class AddEditEventActivity extends AppCompatActivity {
 
     public static String EDIT_EVENT_MODE = "editMode";
 
@@ -146,7 +146,7 @@ public class AddEventActivity extends AppCompatActivity {
         final String description = descriptionEditText.getText().toString().trim();
 
         if (title.length() == 0) {
-            Toast.makeText(AddEventActivity.this, "Title is Empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(AddEditEventActivity.this, "Title is Empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -163,13 +163,13 @@ public class AddEventActivity extends AppCompatActivity {
                 Event event = new Event(title, description, currUser, alarmId, year, month, date, hour, minutes);
 
                 if (editMode) {
-                    EventManager.deleteEvent(AddEventActivity.this, eventId);
-                    AlarmHelper.cancelAlarm(AddEventActivity.this, AddEventActivity.this.alarmId);
+                    EventManager.deleteEvent(AddEditEventActivity.this, eventId);
+                    AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.alarmId);
                 }
                 String key = EventManager.addEventToDb(event);
 
-                //AlarmHelper.setAlarm(AddEventActivity.this, title, eventId, alarmId, year, month, date, hour, minutes);
-                Toast.makeText(AddEventActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
+                //AlarmHelper.setAlarm(AddEditEventActivity.this, title, eventId, alarmId, year, month, date, hour, minutes);
+                Toast.makeText(AddEditEventActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
 
                 ArrayList<String> invitedUsersEmail = userAdapter.getSelectedUsers();
                 EventSubscriptionManager.addSubscriptionToDb(invitedUsersEmail, key, currUser);
@@ -178,7 +178,7 @@ public class AddEventActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(AddEventActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(AddEditEventActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -200,37 +200,37 @@ public class AddEventActivity extends AppCompatActivity {
                         }
                         userAdapter = new UserRecyclerViewAdapter(userList, editMode, eventId);
                         userRecyclerView.setAdapter(userAdapter);
-                        userRecyclerView.setLayoutManager(new LinearLayoutManager(AddEventActivity.this));
+                        userRecyclerView.setLayoutManager(new LinearLayoutManager(AddEditEventActivity.this));
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-                        Toast.makeText(AddEventActivity.this, "Cannot retrieve user lists", Toast.LENGTH_LONG).show();
+                        Toast.makeText(AddEditEventActivity.this, "Cannot retrieve user lists", Toast.LENGTH_LONG).show();
                     }
                 });
     }
 
 
     private void showTimePicker() {
-        TimePickerDialog timePickerDialog = new TimePickerDialog(AddEventActivity.this, new TimePickerDialog.OnTimeSetListener() {
+        TimePickerDialog timePickerDialog = new TimePickerDialog(AddEditEventActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                 hour = hourOfDay;
-                AddEventActivity.this.minutes = minute;
+                AddEditEventActivity.this.minutes = minute;
                 timeTextBox.setText(getTimeString());
             }
-        }, hour, minutes, true);
+        }, hour, minutes, false);
         timePickerDialog.setTitle("Select Time");
         timePickerDialog.show();
     }
 
     private void showDatePicker() {
-        DatePickerDialog datePickerDialog = new DatePickerDialog(AddEventActivity.this, new DatePickerDialog.OnDateSetListener() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(AddEditEventActivity.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                AddEventActivity.this.year = year;
-                AddEventActivity.this.month = month;
-                AddEventActivity.this.date = dayOfMonth;
+                AddEditEventActivity.this.year = year;
+                AddEditEventActivity.this.month = month;
+                AddEditEventActivity.this.date = dayOfMonth;
                 dateTextBox.setText(getDateString());
             }
         }, year, month, date);

@@ -38,26 +38,30 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             for (int i = 0; i < userList.size(); ++i) {
                 final User user = userList.get(i);
                 final int finalI = i;
-                events.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                            EventSubscription sub = snap.getValue(EventSubscription.class);
-
-                            if (user.getEmail().equals(sub.getUserEmail()) &&
-                                    sub.getEventId().equals(eventId)) {
-                                toggleSelection(finalI);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+                preselectUsers(eventId, events, user, finalI);
             }
         }
+    }
+
+    private void preselectUsers(final String eventId, DatabaseReference events, final User user, final int finalI) {
+        events.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    EventSubscription sub = snap.getValue(EventSubscription.class);
+
+                    if (user.getEmail().equals(sub.getUserEmail()) &&
+                            sub.getEventId().equals(eventId)) {
+                        toggleSelection(finalI);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
@@ -72,7 +76,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
     public void onBindViewHolder(UserItemViewHolder holder, final int position) {
         final User singleUser = userList.get(position);
 
-        holder.checkBox.setText(singleUser.getName() + "  ( " + singleUser.getEmail() + " ) ");
+        holder.checkBox.setText(singleUser.getName() + "  ( " + User.decodeString(singleUser.getEmail()) + " ) ");
 
         if (selectedUsers.get(position, false)) {
             holder.checkBox.setChecked(true);

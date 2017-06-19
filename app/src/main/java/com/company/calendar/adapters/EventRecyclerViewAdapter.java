@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.company.calendar.R;
 import com.company.calendar.activities.EventInfoActivity;
 import com.company.calendar.models.Event;
+import com.company.calendar.models.User;
 
 import java.util.ArrayList;
 
@@ -41,13 +42,14 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
     public void onBindViewHolder(final EventItemViewHolder holder, int position) {
         final Event singleEvent = eventsSet.get(position);
 
-        holder.eventName.setText(singleEvent.getTitle() + "   " + singleEvent.getOwnerEmail());
+        holder.eventName.setText(singleEvent.getTitle() + "  ( Owner:  " + User.decodeString(singleEvent.getOwnerEmail()) + " )");
         holder.eventName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(context, EventInfoActivity.class);
                 i.putExtra(EventInfoActivity.EVENT_ID, singleEvent.getId());
                 i.putExtra(Event.ALARM_ID_FIELD, singleEvent.getAlarmId());
+                i.putExtra(Event.OWNER_EMAIL_FIELD, singleEvent.getOwnerEmail());
                 context.startActivity(i);
             }
         });

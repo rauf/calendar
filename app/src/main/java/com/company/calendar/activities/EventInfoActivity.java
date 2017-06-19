@@ -24,6 +24,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by abdul on 18-Jun-17.
  */
@@ -36,6 +40,7 @@ public class EventInfoActivity extends AppCompatActivity {
     private TextView titleInfo;
     private TextView descriptionInfo;
     private TextView ownerInfo;
+    private TextView otherUsersInfo;
     private RadioGroup responseRadioGroup;
     private RadioButton goingRadioButton;
     private RadioButton notGoingRadioButton;
@@ -43,6 +48,7 @@ public class EventInfoActivity extends AppCompatActivity {
     private Button editEventButton;
     private Button deleteEventButton;
     private int alarmId;
+    private String ownerEmail;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,6 +59,7 @@ public class EventInfoActivity extends AppCompatActivity {
 
         eventId = receivedIntent.getStringExtra(EVENT_ID);
         alarmId = receivedIntent.getIntExtra(Event.ALARM_ID_FIELD, 0);
+        ownerEmail = receivedIntent.getStringExtra(Event.OWNER_EMAIL_FIELD);
 
         if (eventId == null) {
             Toast.makeText(EventInfoActivity.this, "Event Id not received by this activity. Closing it", Toast.LENGTH_SHORT).show();
@@ -73,8 +80,16 @@ public class EventInfoActivity extends AppCompatActivity {
         editEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent in = new Intent(EventInfoActivity.this, AddEventActivity.class);
-                in.putExtra(AddEventActivity.EDIT_EVENT_MODE, true);
+
+                String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+
+                if (!currUser.equals(ownerEmail)) {
+                    Toast.makeText(EventInfoActivity.this, "Cannot edit. You are not the owner", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Intent in = new Intent(EventInfoActivity.this, AddEditEventActivity.class);
+                in.putExtra(AddEditEventActivity.EDIT_EVENT_MODE, true);
                 in.putExtra(Event.ID_FIELD, eventId);
                 in.putExtra(Event.ALARM_ID_FIELD, alarmId);
                 startActivity(in);
@@ -93,8 +108,6 @@ public class EventInfoActivity extends AppCompatActivity {
                 final String status = getStatusFromRadioSelect(selectedId);
                 final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
-
-                //Toast.makeText(EventInfoActivity.this, "Saving your response", Toast.LENGTH_SHORT).show();
 
                 ref.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -138,20 +151,54 @@ public class EventInfoActivity extends AppCompatActivity {
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+        final Map<String, ArrayList<String>> map = new HashMap<>();
 
         ref
                 //.equalTo(event)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+                        map.clear();
                         for (DataSnapshot snap : dataSnapshot.getChildren()) {
 
                             EventSubscription sub = snap.getValue(EventSubscription.class);
 
                             if (sub.getEventId().equals(event) && sub.getUserEmail().equals(currUser)) {
                                 updataRadioButtons(sub.getStatus());
+                            } else if (sub.getEventId().equals(event)) {
+                                if (map.containsKey(sub.getStatus())) {
+                                    ArrayList<String> list = map.get(sub.getStatus());
+                                    list.add(sub.getUserEmail());
+                                    map.put(sub.getStatus(), list);
+                                } else {
+                                    ArrayList<String> list = new ArrayList<>();
+                                    list.add(sub.getUserEmail());
+                                    map.put(sub.getStatus(), list);
+                                }
                             }
                         }
+
+                        StringBuilder sb = new StringBuilder();
+
+                        for (Map.Entry<String, ArrayList<String>> entry : map.entrySet()) {
+
+                            String key = entry.getKey();
+
+                            if (key.equals(Event.NOT_GOING)) {
+                                key = "NOT GOING";
+                            } else if (key.equals(Event.MAYBE_GOING)) {
+                                key = "MAYBE GOING";
+                            }
+
+                            sb.append(key).append('\n');
+                            ArrayList<String> list = entry.getValue();
+
+                            for (String str : list) {
+                                sb.append('\t').append("\t\t\t\t").append(User.decodeString(str)).append('\n');
+                            }
+                            sb.append('\n');
+                        }
+                        otherUsersInfo.setText(sb);
                     }
 
                     @Override
@@ -213,6 +260,7 @@ public class EventInfoActivity extends AppCompatActivity {
         goingRadioButton = (RadioButton) findViewById(R.id.goingRadioButton);
         notGoingRadioButton = (RadioButton) findViewById(R.id.notGoingRadioButton);
         maybeGoingRadioButton = (RadioButton) findViewById(R.id.maybeGoingRadioButton);
+        otherUsersInfo = (TextView) findViewById(R.id.otherUsersInfo);
     }
 
 }

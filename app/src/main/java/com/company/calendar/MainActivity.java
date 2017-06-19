@@ -11,10 +11,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.company.calendar.activities.AddEventActivity;
+import com.company.calendar.activities.AddEditEventActivity;
 import com.company.calendar.activities.SignInActivity;
 import com.company.calendar.adapters.EventRecyclerViewAdapter;
 import com.company.calendar.managers.AlarmHelper;
+import com.company.calendar.models.AlarmCounter;
 import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         addEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, AddEventActivity.class);
+                Intent intent = new Intent(MainActivity.this, AddEditEventActivity.class);
                 startActivity(intent);
             }
         });
@@ -75,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     void updateLists() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+
+        //FirebaseDatabase.getInstance().getReference().child(AlarmCounter.ALARM_COUNTER_FIELD).setValue(1);
 
         ref.addValueEventListener(
                 new ValueEventListener() {
@@ -153,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
 
         Toast.makeText(MainActivity.this, "Retrieving events: " + currUserSubs.size(), Toast.LENGTH_SHORT).show();
         DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
-        final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
         for (final EventSubscription sub : currUserSubs) {
             eventRef
@@ -179,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             setRecyclerViews(gEvents, pEvents);
-                            Toast.makeText(MainActivity.this, "All Events Retrieved", LENGTH_SHORT).show();
                         }
 
                         @Override

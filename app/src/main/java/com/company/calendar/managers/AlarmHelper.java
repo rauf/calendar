@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 
 import com.company.calendar.models.Event;
@@ -34,8 +35,12 @@ public class AlarmHelper {
         intent.putExtra(Event.TITLE_FIELD, event.getTitle());
         intent.putExtra(Event.ID_FIELD, event.getId());
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarmId, intent, PendingIntent.FLAG_ONE_SHOT);
-        // cal.add(Calendar.SECOND, 5);
-        alarmMgr.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            alarmMgr.setExact(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+        } else {
+            alarmMgr.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
+        }
 
         return alarmId;
     }
@@ -48,14 +53,5 @@ public class AlarmHelper {
                 context, alarmId, myIntent, PendingIntent.FLAG_ONE_SHOT);
 
         alarmManager.cancel(pendingIntent);
-    }
-
-    //use ful for local events but not with global events
-    private static int getAlarmId(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        int alarmId = preferences.getInt("ALARM", 1);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("ALARM", alarmId + 1).apply();
-        return alarmId;
     }
 }

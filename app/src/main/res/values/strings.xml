@@ -17,4 +17,6 @@
     <string name="not_going">Not Going</string>
     <string name="going">Going</string>
     <string name="maybe_going">Maybe Going</string>
+    <string name="other_s_responses">Other\'s Responses</string>
+    <string name="othersinfo">othersInfo</string>
 </resources>
