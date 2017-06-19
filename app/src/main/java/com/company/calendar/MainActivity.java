@@ -1,8 +1,8 @@
 package com.company.calendar;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -12,7 +12,7 @@ import android.widget.Toast;
 import com.company.calendar.activities.AddEventActivity;
 import com.company.calendar.activities.SignInActivity;
 import com.company.calendar.adapters.EventRecyclerViewAdapter;
-import com.company.calendar.managers.EventSubscriptionManager;
+import com.company.calendar.managers.AlarmHelper;
 import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
@@ -25,7 +25,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -109,15 +108,17 @@ public class MainActivity extends AppCompatActivity {
                                         }
 
                                         if (eventSubscription.getStatus().equals(Event.GOING)) {
+                                            AlarmHelper.setAlarm(MainActivity.this, ev, ev.getAlarmId(), ev.getYear(),       //alarms set for only going events
+                                                    ev.getMonth(), ev.getDate(), ev.getHour(), ev.getMinute());
                                             gEvents.add(ev);
                                         } else {
+                                            AlarmHelper.cancelAlarm(MainActivity.this, ev.getAlarmId());        //cancel alarms for pending events
                                             pEvents.add(ev);
                                         }
                                     }
 
                                     setRecyclerViews(gEvents, pEvents);
                                     Toast.makeText(MainActivity.this, "All Events Retrieved", LENGTH_SHORT).show();
-
                                 }
 
                                 @Override

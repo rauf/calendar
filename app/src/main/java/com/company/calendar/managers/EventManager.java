@@ -24,12 +24,12 @@ public class EventManager {
         //private, cannot be instantiated
     }
 
-    public static String addEventToDb(String title, String description, String ownerEmail) {
+    public static String addEventToDb(String title, String description, String ownerEmail, int alarmId) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
         String key = db.push().getKey();
 
-        final Event event = new Event(key, title, description, ownerEmail);
+        final Event event = new Event(key, title, description, ownerEmail, alarmId);
         db.child(key).setValue(event);
         return key;
     }
@@ -53,7 +53,6 @@ public class EventManager {
                             if (event.getId().equals(eventId) && event.getOwnerEmail().equals(currUser)) {
                                 snap.getRef().removeValue();
                                 exit = false;
-                                //Toast.makeText(context, "You don't have permissions to delete this event. Owner is : " + User.decodeString(event.getOwnerEmail()), Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -75,7 +74,6 @@ public class EventManager {
                                     }
                                 }
                                 Toast.makeText(context, "Event Successfully Deleted", Toast.LENGTH_SHORT).show();
-                                ((EventInfoActivity) context).finish();
                             }
 
                             @Override

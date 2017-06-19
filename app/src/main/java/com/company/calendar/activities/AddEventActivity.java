@@ -1,9 +1,5 @@
 package com.company.calendar.activities;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Map;
-
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -24,32 +20,27 @@ import com.company.calendar.adapters.UserRecyclerViewAdapter;
 import com.company.calendar.managers.EventManager;
 import com.company.calendar.managers.EventSubscriptionManager;
 import com.company.calendar.managers.UserManager;
-import com.company.calendar.models.EventSubscription;
+import com.company.calendar.models.AlarmCounter;
 import com.company.calendar.models.User;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Map;
+
 
 /**
  * Created by abdul on 17-Jun-17.
  */
 
-public class AddEventActivity extends AppCompatActivity{
+public class AddEventActivity extends AppCompatActivity {
 
     private Calendar rightNow;
-
-    private int hour = 0;
-    private int minutes = 0;
-
-    private int day = 0;
-    private int month = 0;
-    private int year = 0;
-
     private ArrayList<User> userList;
     private UserRecyclerViewAdapter userAdapter;
     private RecyclerView userRecyclerView;
@@ -58,6 +49,13 @@ public class AddEventActivity extends AppCompatActivity{
     private TextView dateTextBox;
     private TextView timeTextBox;
     private Button addEventButton;
+
+    private int hour = 0;
+    private int minutes = 0;
+
+    private int date = 0;
+    private int month = 0;
+    private int year = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -92,23 +90,39 @@ public class AddEventActivity extends AppCompatActivity{
     }
 
     private void handleAddEventClick() {
-        String title = titleEditText.getText().toString().trim();
-        String description = descriptionEditText.getText().toString().trim();
+        final String title = titleEditText.getText().toString().trim();
+        final String description = descriptionEditText.getText().toString().trim();
 
         if (title.length() == 0) {
             Toast.makeText(AddEventActivity.this, "Title is Empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());    //encoding as firebase doen not supoort '.' in its path
+        final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());    //encoding as firebase doen not supoort '.' in its path
+        final DatabaseReference alarmCounter = FirebaseDatabase.getInstance().getReference().child(AlarmCounter.ALARM_COUNTER_FIELD);
 
-        String key = EventManager.addEventToDb(title, description, currUser);
+        alarmCounter.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot data) {
 
-        ArrayList<String> invitedUsersEmail = userAdapter.getSelectedUsers();
-        EventSubscriptionManager.addSubscriptionToDb(invitedUsersEmail, key, currUser);
+                int alarmId = data.getValue(Integer.class);
+                alarmCounter.setValue(alarmId + 1);
 
-        Toast.makeText(AddEventActivity.this, "Event added to Database", Toast.LENGTH_SHORT).show();
-        finish();
+                String key = EventManager.addEventToDb(title, description, currUser, alarmId);
+
+                //AlarmHelper.setAlarm(AddEventActivity.this, title, eventId, alarmId, year, month, date, hour, minutes);
+                Toast.makeText(AddEventActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
+
+                ArrayList<String> invitedUsersEmail = userAdapter.getSelectedUsers();
+                EventSubscriptionManager.addSubscriptionToDb(invitedUsersEmail, key, currUser);
+                finish();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(AddEventActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     void setUserList() {
@@ -117,7 +131,7 @@ public class AddEventActivity extends AppCompatActivity{
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        userList = UserManager.getAllUsersFromDb((Map<String,Object>) dataSnapshot.getValue());
+                        userList = UserManager.getAllUsersFromDb((Map<String, Object>) dataSnapshot.getValue());
 
                         for (int i = 0; i < userList.size(); i++) {
                             String s = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
@@ -177,7 +191,7 @@ public class AddEventActivity extends AppCompatActivity{
     private void setDateTimeVariablesToCurrent() {
         hour = rightNow.get(Calendar.HOUR_OF_DAY);
         minutes = rightNow.get(Calendar.MINUTE);
-        day = rightNow.get(Calendar.DAY_OF_MONTH);
+        date = rightNow.get(Calendar.DAY_OF_MONTH);
         month = rightNow.get(Calendar.MONTH);
         year = rightNow.get(Calendar.YEAR);
     }
@@ -187,7 +201,7 @@ public class AddEventActivity extends AppCompatActivity{
         //minutes = time.getMinute();
     }
 
-    private void displayDateTimeDialog () {
+    private void displayDateTimeDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
         builder.setTitle("Select Date and Time")
                 .setView(R.layout.dialog_date_picker)

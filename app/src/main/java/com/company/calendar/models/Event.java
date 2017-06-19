@@ -2,8 +2,6 @@ package com.company.calendar.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
-import java.util.ArrayList;
-
 /**
  * Created by abdul on 17-Jun-17.
  */
@@ -29,23 +27,24 @@ public class Event {
     private String title;
     private String description;
     private String ownerEmail;
-/*
 
-    private ArrayList<String> goingUsers;
-    private ArrayList<String> notGoingUsers;
-    private ArrayList<String> maybeGoingUsers;
-    private ArrayList<String> notRespondedUsers;
-*/
+    private int alarmId;
+    private int year;
+    private int month;
+    private int date;
+    private int hour;
+    private int minute;
 
     public Event() {
         //required. Do not delete
     }
 
-    public Event(String id, String title, String description, String ownerEmail) {
+    public Event(String id, String title, String description, String ownerEmail, int alarmId) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ownerEmail = ownerEmail;
+        this.alarmId = alarmId;
     }
 
     public String getId() {
@@ -79,37 +78,52 @@ public class Event {
     public void setOwnerEmail(String ownerEmail) {
         this.ownerEmail = ownerEmail;
     }
-/*
-    public ArrayList<String> getGoingUsers() {
-        return goingUsers;
+
+    public int getAlarmId() {
+        return alarmId;
     }
 
-    public void setGoingUsers(ArrayList<String> goingUsers) {
-        this.goingUsers = goingUsers;
+    public void setAlarmId(int alarmId) {
+        this.alarmId = alarmId;
     }
 
-    public ArrayList<String> getNotGoingUsers() {
-        return notGoingUsers;
+    public int getYear() {
+        return year;
     }
 
-    public void setNotGoingUsers(ArrayList<String> notGoingUsers) {
-        this.notGoingUsers = notGoingUsers;
+    public void setYear(int year) {
+        this.year = year;
     }
 
-    public ArrayList<String> getMaybeGoingUsers() {
-        return maybeGoingUsers;
+    public int getMonth() {
+        return month;
     }
 
-    public void setMaybeGoingUsers(ArrayList<String> maybeGoingUsers) {
-        this.maybeGoingUsers = maybeGoingUsers;
+    public void setMonth(int month) {
+        this.month = month;
     }
 
-    public ArrayList<String> getNotRespondedUsers() {
-        return notRespondedUsers;
+    public int getDate() {
+        return date;
     }
 
-    public void setNotRespondedUsers(ArrayList<String> notRespondedUsers) {
-        this.notRespondedUsers = notRespondedUsers;
+    public void setDate(int date) {
+        this.date = date;
     }
-    */
+
+    public int getHour() {
+        return hour;
+    }
+
+    public void setHour(int hour) {
+        this.hour = hour;
+    }
+
+    public int getMinute() {
+        return minute;
+    }
+
+    public void setMinute(int minute) {
+        this.minute = minute;
+    }
 }

@@ -65,10 +65,10 @@ public class EventInfoActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 EventManager.deleteEvent(EventInfoActivity.this, eventId);
+                finish();
             }
         });
     }
-
 
 
     private RadioGroup.OnCheckedChangeListener postStatusChangeToDb() {
