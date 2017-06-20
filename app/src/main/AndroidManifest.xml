@@ -19,10 +19,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.SignInActivity" android:label="Sign In"/>
+        <activity
+            android:name=".activities.SignInActivity"
+            android:label="Sign In" />
         <activity android:name=".activities.AddEditEventActivity" />
-        <activity android:name=".activities.EventInfoActivity" android:label="Event Information"/>
-        <receiver android:name=".receivers.AlarmReceiver"/>
+        <activity
+            android:name=".activities.EventInfoActivity"
+            android:label="Event Information" />
+
+        <receiver android:name=".receivers.AlarmReceiver" />
     </application>
 
 </manifest>

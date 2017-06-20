@@ -31,10 +31,7 @@ public class AlarmHelper {
         cal.set(year, month, date, hourOfDay, mins);
 
         AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlarmReceiver.class);
-        intent.putExtra(Event.TITLE_FIELD, event.getTitle());
-        intent.putExtra(Event.ID_FIELD, event.getId());
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarmId, intent, PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = getPendingIntent(context, event, alarmId);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             alarmMgr.setExact(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
@@ -43,6 +40,13 @@ public class AlarmHelper {
         }
 
         return alarmId;
+    }
+
+    private static PendingIntent getPendingIntent(Context context, Event event, int alarmId) {
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        intent.putExtra(Event.TITLE_FIELD, event.getTitle());
+        intent.putExtra(Event.ID_FIELD, event.getId());
+        return PendingIntent.getBroadcast(context, alarmId, intent, PendingIntent.FLAG_ONE_SHOT);
     }
 
     public static void cancelAlarm(Context context, int alarmId) {

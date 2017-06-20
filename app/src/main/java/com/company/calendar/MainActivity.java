@@ -2,6 +2,7 @@ package com.company.calendar;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -53,8 +54,7 @@ public class MainActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
 
-        confirmedEventsRecyclerView = (RecyclerView) findViewById(R.id.confirmedEventsRecyclerView);
-        pendingEventsRecyclerView = (RecyclerView) findViewById(R.id.pendingEventsRecyclerView);
+        initialiseViews();
 
         if (firebaseUser == null) {
             //not signed in, launch login activity
@@ -65,22 +65,30 @@ public class MainActivity extends AppCompatActivity {
             userName = firebaseUser.getDisplayName();
         }
 
+        addEventButton.setOnClickListener(getAddEventButtonOnClickListener());
+    }
+
+    private void initialiseViews() {
+        confirmedEventsRecyclerView = (RecyclerView) findViewById(R.id.confirmedEventsRecyclerView);
+        pendingEventsRecyclerView = (RecyclerView) findViewById(R.id.pendingEventsRecyclerView);
         addEventButton = (Button) findViewById(R.id.addEventButton);
-        addEventButton.setOnClickListener(new View.OnClickListener() {
+    }
+
+    @NonNull
+    private View.OnClickListener getAddEventButtonOnClickListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, AddEditEventActivity.class);
                 startActivity(intent);
             }
-        });
+        };
     }
 
 
     void updateLists() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
-
-        //FirebaseDatabase.getInstance().getReference().child(AlarmCounter.ALARM_COUNTER_FIELD).setValue(1);
 
         ref.addValueEventListener(
                 new ValueEventListener() {

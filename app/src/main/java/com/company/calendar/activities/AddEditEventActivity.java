@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -87,26 +88,39 @@ public class AddEditEventActivity extends AppCompatActivity {
             timeTextBox.setText(getTimeString());
         }
 
-        addEventButton.setOnClickListener(new View.OnClickListener() {
+        addEventButton.setOnClickListener(getAddEventButtonOnClickListener());
+        dateTextBox.setOnClickListener(getDateTextBoxOnClickListener());
+        timeTextBox.setOnClickListener(getTimeTextBoxOnClickListener());
+    }
+
+    @NonNull
+    private View.OnClickListener getAddEventButtonOnClickListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 handleEventButtonClick();
             }
-        });
+        };
+    }
 
-        dateTextBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDatePicker();
-            }
-        });
-
-        timeTextBox.setOnClickListener(new View.OnClickListener() {
+    @NonNull
+    private View.OnClickListener getTimeTextBoxOnClickListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showTimePicker();
             }
-        });
+        };
+    }
+
+    @NonNull
+    private View.OnClickListener getDateTextBoxOnClickListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDatePicker();
+            }
+        };
     }
 
     private void populateFieldsFromSavedEvent() {
@@ -126,7 +140,7 @@ public class AddEditEventActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                Toast.makeText(AddEditEventActivity.this, "Database call failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -140,7 +154,6 @@ public class AddEditEventActivity extends AppCompatActivity {
         year = event.getYear();
         month = event.getMonth();
         date = event.getDate();
-
         dateTextBox.setText(getDateString());
         timeTextBox.setText(getTimeString());
     }
@@ -155,8 +168,8 @@ public class AddEditEventActivity extends AppCompatActivity {
         }
 
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());    //encoding as firebase doen not supoort '.' in its path
-        final DatabaseReference alarmCounter = FirebaseDatabase.getInstance().getReference().child(AlarmCounter.ALARM_COUNTER_FIELD);
-
+        final DatabaseReference alarmCounter = FirebaseDatabase.getInstance().getReference()
+                .child(AlarmCounter.ALARM_COUNTER_FIELD);
         addOrUpdateEvent(title, description, currUser, alarmCounter);
     }
 

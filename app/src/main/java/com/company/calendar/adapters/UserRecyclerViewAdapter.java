@@ -33,7 +33,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         this.selectedUsers = new SparseBooleanArray();
 
         if (editMode) {
-            DatabaseReference events = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+            DatabaseReference events = FirebaseDatabase.getInstance().getReference()
+                    .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 
             for (int i = 0; i < userList.size(); ++i) {
                 final User user = userList.get(i);
@@ -83,7 +84,6 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         } else {
             holder.checkBox.setChecked(false);
         }
-
         holder.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

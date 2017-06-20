@@ -72,20 +72,29 @@ public class EventInfoActivity extends AppCompatActivity {
         populateEventInfo(eventId);
         populateStatusInfo(eventId);
         responseRadioGroup.setOnCheckedChangeListener(postStatusChangeToDb());
-        deleteEventButton.setOnClickListener(new View.OnClickListener() {
+        deleteEventButton.setOnClickListener(getDeleteButtonOnClickListener());
+        editEventButton.setOnClickListener(getEditButtonOnClickListener());
+    }
+
+    @NonNull
+    private View.OnClickListener getEditButtonOnClickListener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                handleEditEventClick();
+            }
+        };
+    }
+
+    @NonNull
+    private View.OnClickListener getDeleteButtonOnClickListener() {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 EventManager.deleteEvent(EventInfoActivity.this, eventId, false);
                 finish();
             }
-        });
-
-        editEventButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                handleEditEventClick();
-            }
-        });
+        };
     }
 
     private void handleEditEventClick() {
@@ -113,7 +122,8 @@ public class EventInfoActivity extends AppCompatActivity {
 
                 final String status = getStatusFromRadioSelect(selectedId);
                 final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
+                                .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 
                 ref.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -134,7 +144,6 @@ public class EventInfoActivity extends AppCompatActivity {
                         Toast.makeText(EventInfoActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
                     }
                 });
-
             }
         };
     }
@@ -168,7 +177,6 @@ public class EventInfoActivity extends AppCompatActivity {
                         for (DataSnapshot snap : dataSnapshot.getChildren()) {
                             createStatusMap(snap, event, currUser, map);
                         }
-
                         otherUsersInfo.setText(buildStringFromMap(map));
                     }
 

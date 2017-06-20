@@ -41,6 +41,4 @@ public class UserManager {
         }
         return users;
     }
-
-
 }

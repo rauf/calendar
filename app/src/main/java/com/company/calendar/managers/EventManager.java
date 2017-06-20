@@ -27,7 +27,6 @@ public class EventManager {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
         String key = db.push().getKey();
-
         event.setId(key);
         db.child(key).setValue(event);
         return key;
@@ -42,33 +41,36 @@ public class EventManager {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-
-                        boolean exit = true;
-
-                        for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                            Event event = snap.getValue(Event.class);
-
-                            if (event.getId().equals(eventId) && event.getOwnerEmail().equals(currUser)) {
-                                snap.getRef().removeValue();
-                                exit = false;
-                            }
-                        }
-
-                        if (exit) {
-                            Toast.makeText(context, "You don't have permissions to delete this event. You are not the owner", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        DatabaseReference subs = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
-                        deleteSubscription(subs, eventId, context, editMode);
+                        findAndDeleteEvent(dataSnapshot, eventId, currUser, context, editMode);
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
+                        Toast.makeText(context, "Database error", Toast.LENGTH_SHORT).show();
                     }
                 });
 
+    }
+
+    private static void findAndDeleteEvent(DataSnapshot dataSnapshot, String eventId, String currUser, Context context, boolean editMode) {
+        boolean exit = true;
+
+        for (DataSnapshot snap : dataSnapshot.getChildren()) {
+            Event event = snap.getValue(Event.class);
+
+            if (event.getId().equals(eventId) && event.getOwnerEmail().equals(currUser)) {
+                snap.getRef().removeValue();
+                exit = false;
+            }
+        }
+
+        if (exit) {
+            //Toast.makeText(context, "You don't have permissions to delete this event. You are not the owner", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DatabaseReference subs = FirebaseDatabase.getInstance().getReference()
+                .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+        deleteSubscription(subs, eventId, context, editMode);
     }
 
     private static void deleteSubscription(DatabaseReference subs, final String eventId, final Context context, final boolean editMode) {

@@ -13,7 +13,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Title"
+        android:text="@string/title"
         android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -27,7 +27,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="eventTitle"
+        android:text="@string/eventtitle"
         android:textSize="16sp"
         app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintLeft_toRightOf="@+id/textView3"
@@ -41,7 +41,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Description"
+        android:text="@string/description"
         android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView3" />
@@ -55,7 +55,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="eventDescription"
+        android:text="@string/eventdescription"
         android:textSize="16sp"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="@+id/titleInfo"
@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:text="Your Response"
+        android:text="@string/your_response"
         android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginTop="8dp"
@@ -84,7 +84,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:backgroundTint="#FF0000"
-        android:text="Delete Event"
+        android:text="@string/delete_event"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -98,7 +98,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
-        android:text="Edit Event"
+        android:text="@string/edit_event"
         app:layout_constraintBottom_toTopOf="@+id/deleteEventButton"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -110,7 +110,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Owner Email"
+        android:text="@string/owner_email"
         android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView5" />
@@ -124,7 +124,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="TextView"
+        android:text="@string/owner"
         android:textSize="16sp"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="@+id/titleInfo"
@@ -207,7 +207,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:text="Date"
+        android:text="@string/date"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
@@ -217,7 +217,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:text="Time"
+        android:text="@string/time"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView6" />
 
@@ -225,7 +225,7 @@
         android:id="@+id/dateInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
+        android:text="@string/dateinfo"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/ownerInfo"
@@ -240,7 +240,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
-        android:text="TextView"
+        android:text="@string/timeinfo"
         app:layout_constraintLeft_toLeftOf="@+id/titleInfo"
         app:layout_constraintTop_toBottomOf="@+id/dateInfo" />
 

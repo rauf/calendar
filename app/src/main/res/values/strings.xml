@@ -19,4 +19,13 @@
     <string name="maybe_going">Maybe Going</string>
     <string name="other_s_responses">Other\'s Responses</string>
     <string name="othersinfo">othersInfo</string>
+    <string name="timeinfo">timeInfo</string>
+    <string name="owner">Owner</string>
+    <string name="eventtitle">eventTitle</string>
+    <string name="eventdescription">eventDescription</string>
+    <string name="your_response">Your Response</string>
+    <string name="delete_event">Delete Event</string>
+    <string name="edit_event">Edit Event</string>
+    <string name="owner_email">Owner Email</string>
+    <string name="dateinfo">dateInfo</string>
 </resources>

@@ -2,6 +2,7 @@ package com.company.calendar.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,7 +44,12 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
         final Event singleEvent = eventsSet.get(position);
 
         holder.eventName.setText(singleEvent.getTitle() + "  ( Owner:  " + User.decodeString(singleEvent.getOwnerEmail()) + " )");
-        holder.eventName.setOnClickListener(new View.OnClickListener() {
+        holder.eventName.setOnClickListener(getEventNameClickListener(singleEvent));
+    }
+
+    @NonNull
+    private View.OnClickListener getEventNameClickListener(final Event singleEvent) {
+        return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(context, EventInfoActivity.class);
@@ -52,7 +58,7 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
                 i.putExtra(Event.OWNER_EMAIL_FIELD, singleEvent.getOwnerEmail());
                 context.startActivity(i);
             }
-        });
+        };
     }
 
     @Override
