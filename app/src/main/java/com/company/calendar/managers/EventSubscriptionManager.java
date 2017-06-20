@@ -32,19 +32,6 @@ public class EventSubscriptionManager {
         db.child(k).setValue(new EventSubscription(currUser, eventId, Event.GOING));
     }
 
-    public static ArrayList<EventSubscription> getAllSubscriptionsFromDb(Map<String, Object> map) {
-
-        ArrayList<EventSubscription> subs = new ArrayList<>();
-
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            Map singleSub = (Map) entry.getValue();
-            final EventSubscription sub = new EventSubscription((String) singleSub.get(EventSubscription.USER_EMAIL_FIELD),
-                    (String) singleSub.get(EventSubscription.EVENT_ID_FIELD), (String) singleSub.get(EventSubscription.STATUS_FIELD));
-            subs.add(sub);
-        }
-        return subs;
-    }
-
     public static ArrayList<EventSubscription> filterCurrentUserSubs(ArrayList<EventSubscription> allSubs, String currUser) {
 
         currUser = User.encodeString(currUser);

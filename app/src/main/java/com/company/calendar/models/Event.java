@@ -144,4 +144,13 @@ public class Event {
     public void setMinute(int minute) {
         this.minute = minute;
     }
+
+    public String getDateString() {
+        return date + " / " + (month + 1) + " / " + year;
+    }
+
+    public String getTimeString() {
+        return hour + " : " + minute;
+    }
+
 }

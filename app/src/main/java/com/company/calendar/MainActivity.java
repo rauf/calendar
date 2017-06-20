@@ -47,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //firebase offline
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
 
@@ -93,45 +96,13 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         for (final DataSnapshot sub : dataSnapshot.getChildren()) {
-
                             final EventSubscription eventSubscription = sub.getValue(EventSubscription.class);
 
                             if (!eventSubscription.getUserEmail().equals(currUser)) {
                                 continue;
                             }
-
                             DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
-                            eventRef.addValueEventListener(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                    for (DataSnapshot snap : dataSnapshot.getChildren()) {
-
-                                        final Event ev = snap.getValue(Event.class);
-
-                                        if (!ev.getId().equals(eventSubscription.getEventId())) {
-                                            continue;
-                                        }
-
-                                        if (eventSubscription.getStatus().equals(Event.GOING)) {
-                                            AlarmHelper.setAlarm(MainActivity.this, ev, ev.getAlarmId(), ev.getYear(),       //alarms set for only going events
-                                                    ev.getMonth(), ev.getDate(), ev.getHour(), ev.getMinute());
-                                            gEvents.add(ev);
-                                        } else {
-                                            AlarmHelper.cancelAlarm(MainActivity.this, ev.getAlarmId());        //cancel alarms for pending events
-                                            pEvents.add(ev);
-                                        }
-                                    }
-
-                                    setRecyclerViews(gEvents, pEvents);
-                                    Toast.makeText(MainActivity.this, "All Events Retrieved", LENGTH_SHORT).show();
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
+                            filterEvents(gEvents, pEvents, eventSubscription, eventRef);
                         }
                     }
 
@@ -142,6 +113,38 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    private void filterEvents(final ArrayList<Event> gEvents, final ArrayList<Event> pEvents, final EventSubscription eventSubscription, DatabaseReference eventRef) {
+        eventRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    final Event ev = snap.getValue(Event.class);
+
+                    if (!ev.getId().equals(eventSubscription.getEventId())) {
+                        continue;
+                    }
+
+                    if (eventSubscription.getStatus().equals(Event.GOING)) {
+                        AlarmHelper.setAlarm(MainActivity.this, ev, ev.getAlarmId(), ev.getYear(),       //alarms set for only going events
+                                ev.getMonth(), ev.getDate(), ev.getHour(), ev.getMinute());
+                        gEvents.add(ev);
+                    } else {
+                        AlarmHelper.cancelAlarm(MainActivity.this, ev.getAlarmId());        //cancel alarms for pending events
+                        pEvents.add(ev);
+                    }
+                }
+
+                setRecyclerViews(gEvents, pEvents);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void setRecyclerViews(ArrayList<Event> gEvents, ArrayList<Event> pEvents) {
         EventRecyclerViewAdapter goingAdapter = new EventRecyclerViewAdapter(gEvents, MainActivity.this);
         EventRecyclerViewAdapter pendingAdapter = new EventRecyclerViewAdapter(pEvents, MainActivity.this);
@@ -150,45 +153,6 @@ public class MainActivity extends AppCompatActivity {
         pendingEventsRecyclerView.setAdapter(pendingAdapter);
         confirmedEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         pendingEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-    }
-
-    private void setUpRecyclerViews(ArrayList<EventSubscription> currUserSubs) {
-
-        Toast.makeText(MainActivity.this, "Retrieving events: " + currUserSubs.size(), Toast.LENGTH_SHORT).show();
-        DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
-
-        for (final EventSubscription sub : currUserSubs) {
-            eventRef
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            final ArrayList<Event> gEvents = new ArrayList<>();
-                            final ArrayList<Event> pEvents = new ArrayList<>();
-
-                            for (DataSnapshot snap : dataSnapshot.getChildren()) {
-
-                                final Event ev = snap.getValue(Event.class);
-
-                                if (!ev.getId().equals(sub.getEventId())) {
-                                    continue;
-                                }
-
-                                if (sub.getStatus().equals(Event.GOING)) {
-                                    gEvents.add(ev);
-                                } else {
-                                    pEvents.add(ev);
-                                }
-                            }
-
-                            setRecyclerViews(gEvents, pEvents);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            Toast.makeText(MainActivity.this, "Call to Database failed", LENGTH_SHORT).show();
-                        }
-                    });
-        }
     }
 
 

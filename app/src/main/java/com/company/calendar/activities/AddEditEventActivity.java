@@ -70,7 +70,7 @@ public class AddEditEventActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_event);
 
-        intitialiseViews();
+        initialiseViews();
         setUserList();
 
         Intent recvIntent = getIntent();
@@ -90,7 +90,7 @@ public class AddEditEventActivity extends AppCompatActivity {
         addEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handleAddEventClick();
+                handleEventButtonClick();
             }
         });
 
@@ -119,17 +119,7 @@ public class AddEditEventActivity extends AppCompatActivity {
                     Event event = snap.getValue(Event.class);
 
                     if (event.getId().equals(eventId)) {
-                        titleEditText.setText(event.getTitle());
-                        descriptionEditText.setText(event.getDescription());
-
-                        hour = event.getHour();
-                        minutes = event.getMinute();
-                        year = event.getYear();
-                        month = event.getMonth();
-                        date = event.getDate();
-
-                        dateTextBox.setText(getDateString());
-                        timeTextBox.setText(getTimeString());
+                        setFieldsFromEvent(event);
                     }
                 }
             }
@@ -141,7 +131,21 @@ public class AddEditEventActivity extends AppCompatActivity {
         });
     }
 
-    private void handleAddEventClick() {
+    private void setFieldsFromEvent(Event event) {
+        titleEditText.setText(event.getTitle());
+        descriptionEditText.setText(event.getDescription());
+
+        hour = event.getHour();
+        minutes = event.getMinute();
+        year = event.getYear();
+        month = event.getMonth();
+        date = event.getDate();
+
+        dateTextBox.setText(getDateString());
+        timeTextBox.setText(getTimeString());
+    }
+
+    private void handleEventButtonClick() {
         final String title = titleEditText.getText().toString().trim();
         final String description = descriptionEditText.getText().toString().trim();
 
@@ -153,6 +157,10 @@ public class AddEditEventActivity extends AppCompatActivity {
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());    //encoding as firebase doen not supoort '.' in its path
         final DatabaseReference alarmCounter = FirebaseDatabase.getInstance().getReference().child(AlarmCounter.ALARM_COUNTER_FIELD);
 
+        addOrUpdateEvent(title, description, currUser, alarmCounter);
+    }
+
+    private void addOrUpdateEvent(final String title, final String description, final String currUser, final DatabaseReference alarmCounter) {
         alarmCounter.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot data) {
@@ -163,12 +171,11 @@ public class AddEditEventActivity extends AppCompatActivity {
                 Event event = new Event(title, description, currUser, alarmId, year, month, date, hour, minutes);
 
                 if (editMode) {
-                    EventManager.deleteEvent(AddEditEventActivity.this, eventId);
+                    EventManager.deleteEvent(AddEditEventActivity.this, eventId, editMode);
                     AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.alarmId);
                 }
                 String key = EventManager.addEventToDb(event);
 
-                //AlarmHelper.setAlarm(AddEditEventActivity.this, title, eventId, alarmId, year, month, date, hour, minutes);
                 Toast.makeText(AddEditEventActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
 
                 ArrayList<String> invitedUsersEmail = userAdapter.getSelectedUsers();
@@ -255,7 +262,7 @@ public class AddEditEventActivity extends AppCompatActivity {
         return hour + " : " + minutes;
     }
 
-    private void intitialiseViews() {
+    private void initialiseViews() {
         userRecyclerView = (RecyclerView) findViewById(R.id.userRecyclerView);
         titleEditText = (EditText) findViewById(R.id.titleEditText);
         descriptionEditText = (EditText) findViewById(R.id.descriptionEditText);

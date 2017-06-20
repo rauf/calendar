@@ -23,19 +23,6 @@ public class EventManager {
         //private, cannot be instantiated
     }
 
-/*
-
-    public static String addEventToDb(String title, String description, String ownerEmail, int alarmId) {
-        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
-
-        String key = db.push().getKey();
-
-        final Event event = new Event(key, title, description, ownerEmail, alarmId);
-        db.child(key).setValue(event);
-        return key;
-    }
-*/
-
     public static String addEventToDb(Event event) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
@@ -46,7 +33,7 @@ public class EventManager {
         return key;
     }
 
-    public static void deleteEvent(final Context context, final String eventId) {
+    public static void deleteEvent(final Context context, final String eventId, final boolean editMode) {
 
         DatabaseReference events = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
@@ -73,25 +60,7 @@ public class EventManager {
                         }
 
                         DatabaseReference subs = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
-
-                        subs.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnap) {
-                                for (DataSnapshot snap : dataSnap.getChildren()) {
-                                    EventSubscription sub = snap.getValue(EventSubscription.class);
-
-                                    if (sub.getEventId().equals(eventId)) {
-                                        snap.getRef().removeValue();
-                                    }
-                                }
-                                Toast.makeText(context, "Event Successfully Deleted", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                Toast.makeText(context, "Call to database failed", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        deleteSubscription(subs, eventId, context, editMode);
                     }
 
                     @Override
@@ -100,6 +69,29 @@ public class EventManager {
                     }
                 });
 
+    }
+
+    private static void deleteSubscription(DatabaseReference subs, final String eventId, final Context context, final boolean editMode) {
+        subs.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnap) {
+                for (DataSnapshot snap : dataSnap.getChildren()) {
+                    EventSubscription sub = snap.getValue(EventSubscription.class);
+
+                    if (sub.getEventId().equals(eventId)) {
+                        snap.getRef().removeValue();
+                    }
+                }
+
+                if (!editMode)
+                Toast.makeText(context, "Event Successfully Deleted", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(context, "Call to database failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

@@ -3,6 +3,7 @@ package com.company.calendar.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -49,6 +50,8 @@ public class EventInfoActivity extends AppCompatActivity {
     private Button deleteEventButton;
     private int alarmId;
     private String ownerEmail;
+    private TextView timeInfo;
+    private TextView dateInfo;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,7 +75,7 @@ public class EventInfoActivity extends AppCompatActivity {
         deleteEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EventManager.deleteEvent(EventInfoActivity.this, eventId);
+                EventManager.deleteEvent(EventInfoActivity.this, eventId, false);
                 finish();
             }
         });
@@ -80,22 +83,25 @@ public class EventInfoActivity extends AppCompatActivity {
         editEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
-
-                if (!currUser.equals(ownerEmail)) {
-                    Toast.makeText(EventInfoActivity.this, "Cannot edit. You are not the owner", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                Intent in = new Intent(EventInfoActivity.this, AddEditEventActivity.class);
-                in.putExtra(AddEditEventActivity.EDIT_EVENT_MODE, true);
-                in.putExtra(Event.ID_FIELD, eventId);
-                in.putExtra(Event.ALARM_ID_FIELD, alarmId);
-                startActivity(in);
-                finish();
+                handleEditEventClick();
             }
         });
+    }
+
+    private void handleEditEventClick() {
+        String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+
+        if (!currUser.equals(ownerEmail)) {
+            Toast.makeText(EventInfoActivity.this, "Cannot edit. You are not the owner", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent in = new Intent(EventInfoActivity.this, AddEditEventActivity.class);
+        in.putExtra(AddEditEventActivity.EDIT_EVENT_MODE, true);
+        in.putExtra(Event.ID_FIELD, eventId);
+        in.putExtra(Event.ALARM_ID_FIELD, alarmId);
+        startActivity(in);
+        finish();
     }
 
 
@@ -120,7 +126,7 @@ public class EventInfoActivity extends AppCompatActivity {
                                 snap.child(EventSubscription.STATUS_FIELD).getRef().setValue(status);
                             }
                         }
-                        Toast.makeText(EventInfoActivity.this, "Your response is saved", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(EventInfoActivity.this, "Your response is saved", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -160,45 +166,10 @@ public class EventInfoActivity extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         map.clear();
                         for (DataSnapshot snap : dataSnapshot.getChildren()) {
-
-                            EventSubscription sub = snap.getValue(EventSubscription.class);
-
-                            if (sub.getEventId().equals(event) && sub.getUserEmail().equals(currUser)) {
-                                updataRadioButtons(sub.getStatus());
-                            } else if (sub.getEventId().equals(event)) {
-                                if (map.containsKey(sub.getStatus())) {
-                                    ArrayList<String> list = map.get(sub.getStatus());
-                                    list.add(sub.getUserEmail());
-                                    map.put(sub.getStatus(), list);
-                                } else {
-                                    ArrayList<String> list = new ArrayList<>();
-                                    list.add(sub.getUserEmail());
-                                    map.put(sub.getStatus(), list);
-                                }
-                            }
+                            createStatusMap(snap, event, currUser, map);
                         }
 
-                        StringBuilder sb = new StringBuilder();
-
-                        for (Map.Entry<String, ArrayList<String>> entry : map.entrySet()) {
-
-                            String key = entry.getKey();
-
-                            if (key.equals(Event.NOT_GOING)) {
-                                key = "NOT GOING";
-                            } else if (key.equals(Event.MAYBE_GOING)) {
-                                key = "MAYBE GOING";
-                            }
-
-                            sb.append(key).append('\n');
-                            ArrayList<String> list = entry.getValue();
-
-                            for (String str : list) {
-                                sb.append('\t').append("\t\t\t\t").append(User.decodeString(str)).append('\n');
-                            }
-                            sb.append('\n');
-                        }
-                        otherUsersInfo.setText(sb);
+                        otherUsersInfo.setText(buildStringFromMap(map));
                     }
 
                     @Override
@@ -206,6 +177,49 @@ public class EventInfoActivity extends AppCompatActivity {
                         Toast.makeText(EventInfoActivity.this, "Call to Database failed", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    @NonNull
+    private String buildStringFromMap(Map<String, ArrayList<String>> map) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Map.Entry<String, ArrayList<String>> entry : map.entrySet()) {
+
+            String key = entry.getKey();
+
+            if (key.equals(Event.NOT_GOING)) {
+                key = "NOT GOING";
+            } else if (key.equals(Event.MAYBE_GOING)) {
+                key = "MAYBE GOING";
+            }
+
+            sb.append(key).append('\n');
+            ArrayList<String> list = entry.getValue();
+
+            for (String str : list) {
+                sb.append('\t').append("\t\t\t\t").append(User.decodeString(str)).append('\n');
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
+    }
+
+    private void createStatusMap(DataSnapshot snap, String event, String currUser, Map<String, ArrayList<String>> map) {
+        EventSubscription sub = snap.getValue(EventSubscription.class);
+
+        if (sub.getEventId().equals(event) && sub.getUserEmail().equals(currUser)) {
+            updataRadioButtons(sub.getStatus());
+        } else if (sub.getEventId().equals(event)) {
+            if (map.containsKey(sub.getStatus())) {
+                ArrayList<String> list = map.get(sub.getStatus());
+                list.add(sub.getUserEmail());
+                map.put(sub.getStatus(), list);
+            } else {
+                ArrayList<String> list = new ArrayList<>();
+                list.add(sub.getUserEmail());
+                map.put(sub.getStatus(), list);
+            }
+        }
     }
 
     private void updataRadioButtons(String status) {
@@ -228,7 +242,6 @@ public class EventInfoActivity extends AppCompatActivity {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
         ref
-                //.equalTo(event)
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -239,6 +252,8 @@ public class EventInfoActivity extends AppCompatActivity {
                                 titleInfo.setText(ev.getTitle());
                                 descriptionInfo.setText(ev.getDescription());
                                 ownerInfo.setText(User.decodeString(ev.getOwnerEmail()));
+                                dateInfo.setText(ev.getDateString());
+                                timeInfo.setText(ev.getTimeString());
                             }
                         }
                     }
@@ -254,6 +269,8 @@ public class EventInfoActivity extends AppCompatActivity {
         titleInfo = (TextView) findViewById(R.id.titleInfo);
         descriptionInfo = (TextView) findViewById(R.id.descriptionInfo);
         ownerInfo = (TextView) findViewById(R.id.ownerInfo);
+        dateInfo = (TextView) findViewById(R.id.dateInfo);
+        timeInfo = (TextView) findViewById(R.id.timeInfo);
         responseRadioGroup = (RadioGroup) findViewById(R.id.responseRadioGroup);
         editEventButton = (Button) findViewById(R.id.editEventButton);
         deleteEventButton = (Button) findViewById(R.id.deleteEventButton);

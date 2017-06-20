@@ -30,7 +30,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         showNotification(context, title);
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);
-        EventManager.deleteEvent(context, eventId);
+        EventManager.deleteEvent(context, eventId, false);
     }
 
     private void showNotification(Context context, String title) {
