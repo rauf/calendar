@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.company.calendar.R;
+import com.company.calendar.managers.DateTimeManager;
 import com.company.calendar.managers.EventManager;
 import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
@@ -48,7 +49,8 @@ public class EventInfoActivity extends AppCompatActivity {
     private RadioButton maybeGoingRadioButton;
     private Button editEventButton;
     private Button deleteEventButton;
-    private int alarmId;
+    private int startAlarmId;
+    private int endAlarmId;
     private String ownerEmail;
     private TextView timeInfo;
     private TextView dateInfo;
@@ -61,7 +63,8 @@ public class EventInfoActivity extends AppCompatActivity {
         Intent receivedIntent = getIntent();
 
         eventId = receivedIntent.getStringExtra(EVENT_ID);
-        alarmId = receivedIntent.getIntExtra(Event.ALARM_ID_FIELD, 0);
+        startAlarmId = receivedIntent.getIntExtra(Event.START_ALARM_ID_FIELD, 0);
+        endAlarmId = receivedIntent.getIntExtra(Event.END_ALARM_ID_FIELD, 0);
         ownerEmail = receivedIntent.getStringExtra(Event.OWNER_EMAIL_FIELD);
 
         if (eventId == null) {
@@ -108,7 +111,8 @@ public class EventInfoActivity extends AppCompatActivity {
         Intent in = new Intent(EventInfoActivity.this, AddEditEventActivity.class);
         in.putExtra(AddEditEventActivity.EDIT_EVENT_MODE, true);
         in.putExtra(Event.ID_FIELD, eventId);
-        in.putExtra(Event.ALARM_ID_FIELD, alarmId);
+        in.putExtra(Event.START_ALARM_ID_FIELD, startAlarmId);
+        in.putExtra(Event.END_ALARM_ID_FIELD, endAlarmId);
         startActivity(in);
         finish();
     }
@@ -260,8 +264,10 @@ public class EventInfoActivity extends AppCompatActivity {
                                 titleInfo.setText(ev.getTitle());
                                 descriptionInfo.setText(ev.getDescription());
                                 ownerInfo.setText(User.decodeString(ev.getOwnerEmail()));
-                                dateInfo.setText(ev.getDateString());
-                                timeInfo.setText(ev.getTimeString());
+                                dateInfo.setText(DateTimeManager.getDateString(DateTimeManager.gmttoLocalDate(ev.getStartTime())) +
+                                        "  -  "  + DateTimeManager.getDateString(DateTimeManager.gmttoLocalDate(ev.getEndTime())));
+                                timeInfo.setText(DateTimeManager.getTimeString(DateTimeManager.gmttoLocalDate(ev.getStartTime())) +
+                                        "  -  " + DateTimeManager.getTimeString(DateTimeManager.gmttoLocalDate(ev.getEndTime())));
                             }
                         }
                     }

@@ -27,7 +27,7 @@
             android:name=".activities.EventInfoActivity"
             android:label="Event Information" />
 
-        <receiver android:name=".receivers.AlarmReceiver" />
+        <receiver android:name=".receivers.AlarmReceiver"/>
     </application>
 
 </manifest>

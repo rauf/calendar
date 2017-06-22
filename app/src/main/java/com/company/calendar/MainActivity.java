@@ -16,7 +16,6 @@ import com.company.calendar.activities.AddEditEventActivity;
 import com.company.calendar.activities.SignInActivity;
 import com.company.calendar.adapters.EventRecyclerViewAdapter;
 import com.company.calendar.managers.AlarmHelper;
-import com.company.calendar.models.AlarmCounter;
 import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
@@ -29,8 +28,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-
-import static android.widget.Toast.LENGTH_SHORT;
+import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -49,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //firebase offline
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
@@ -134,15 +132,14 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if (eventSubscription.getStatus().equals(Event.GOING)) {
-                        AlarmHelper.setAlarm(MainActivity.this, ev, ev.getAlarmId(), ev.getYear(),       //alarms set for only going events
-                                ev.getMonth(), ev.getDate(), ev.getHour(), ev.getMinute());
+                        AlarmHelper.setAlarm(MainActivity.this, ev);
                         gEvents.add(ev);
                     } else {
-                        AlarmHelper.cancelAlarm(MainActivity.this, ev.getAlarmId());        //cancel alarms for pending events
+                        AlarmHelper.cancelAlarm(MainActivity.this, ev.getStartAlarmId());        //cancel alarms for pending events
+                        AlarmHelper.cancelAlarm(MainActivity.this, ev.getEndAlarmId());
                         pEvents.add(ev);
                     }
                 }
-
                 setRecyclerViews(gEvents, pEvents);
             }
 

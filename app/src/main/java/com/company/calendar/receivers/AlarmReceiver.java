@@ -8,15 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
 
 import com.company.calendar.MainActivity;
 import com.company.calendar.R;
+import com.company.calendar.managers.AlarmHelper;
 import com.company.calendar.managers.EventManager;
 import com.company.calendar.models.Event;
 
 /**
- * Created by abdul on 19-Jun-17.
+ * Created by abdul on 22-Jun-17.
  */
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -26,22 +26,29 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         String eventId = intent.getStringExtra(Event.ID_FIELD);
         String title = intent.getStringExtra(Event.TITLE_FIELD);
-        //Toast.makeText(context, "Time for event : " + title + "  Deleting the event now", Toast.LENGTH_LONG).show();
-        showNotification(context, title);
+        boolean start = intent.getBooleanExtra(AlarmHelper.FOR_START_ALARM, true);
+
+        showNotification(context, title, start);
         Vibrator vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(2000);
-        EventManager.deleteEvent(context, eventId, false);
+
+        if (!start)  EventManager.deleteEvent(context, eventId, false);
     }
 
-    private void showNotification(Context context, String title) {
+    private void showNotification(Context context, String title, boolean start) {
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
                 new Intent(context, MainActivity.class), 0);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-                        .setContentTitle(title)
-                        .setContentText("Event is now deleted");
+                        .setContentTitle(title);
+
+        if (start) {
+            mBuilder.setContentText("Event has started");
+        } else {
+            mBuilder.setContentText("Event has ended. Deleting from Database");
+        }
         mBuilder.setContentIntent(contentIntent);
         mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         mBuilder.setAutoCancel(true);
@@ -50,5 +57,4 @@ public class AlarmReceiver extends BroadcastReceiver {
         mNotificationManager.notify(1, mBuilder.build());
 
     }
-
 }

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecyclerViewAdapter.EventItemViewHolder> {
 
-
     private ArrayList<Event> eventsSet;
     private Context context;
 
@@ -54,7 +53,8 @@ public class EventRecyclerViewAdapter extends RecyclerView.Adapter<EventRecycler
             public void onClick(View v) {
                 Intent i = new Intent(context, EventInfoActivity.class);
                 i.putExtra(EventInfoActivity.EVENT_ID, singleEvent.getId());
-                i.putExtra(Event.ALARM_ID_FIELD, singleEvent.getAlarmId());
+                i.putExtra(Event.START_ALARM_ID_FIELD, singleEvent.getStartAlarmId());
+                i.putExtra(Event.END_ALARM_ID_FIELD, singleEvent.getEndAlarmId());
                 i.putExtra(Event.OWNER_EMAIL_FIELD, singleEvent.getOwnerEmail());
                 context.startActivity(i);
             }

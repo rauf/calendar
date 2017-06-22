@@ -2,6 +2,8 @@ package com.company.calendar.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.util.Date;
+
 /**
  * Created by abdul on 17-Jun-17.
  */
@@ -20,7 +22,8 @@ public class Event {
     public static final String TITLE_FIELD = "title";
     public static final String DESCRIPTION_FIELD = "description";
     public static final String OWNER_EMAIL_FIELD = "ownerEmail";
-    public static final String ALARM_ID_FIELD = "alarmId";
+    public static final String START_ALARM_ID_FIELD = "startAlarmId";
+    public static final String END_ALARM_ID_FIELD = "endAlarmId";
 
     private String id;
     //check date and time compatibility with firebase
@@ -29,40 +32,31 @@ public class Event {
     private String description;
     private String ownerEmail;
 
-    private int alarmId;
-    private int year;
+    private int startAlarmId;
+    private int endAlarmId;
+
+    private Date startTime;
+    private Date endTime;
+
+   /* private int year;
     private int month;
     private int date;
     private int hour;
     private int minute;
-
+*/
     public Event() {
         //required. Do not delete
     }
 
-    public Event(String id, String title, String description, String ownerEmail, int alarmId, int year, int month, int date, int hour, int minute) {
+    public Event(String id, String title, String description, String ownerEmail, int startAlarmId, int endAlarmId, Date startTime, Date endTime) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ownerEmail = ownerEmail;
-        this.alarmId = alarmId;
-        this.year = year;
-        this.month = month;
-        this.date = date;
-        this.hour = hour;
-        this.minute = minute;
-    }
-
-    public Event(String title, String description, String ownerEmail, int alarmId, int year, int month, int date, int hour, int minute) {
-        this.title = title;
-        this.description = description;
-        this.ownerEmail = ownerEmail;
-        this.alarmId = alarmId;
-        this.year = year;
-        this.month = month;
-        this.date = date;
-        this.hour = hour;
-        this.minute = minute;
+        this.startAlarmId = startAlarmId;
+        this.endAlarmId = endAlarmId;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     public String getId() {
@@ -97,60 +91,35 @@ public class Event {
         this.ownerEmail = ownerEmail;
     }
 
-    public int getAlarmId() {
-        return alarmId;
+    public int getStartAlarmId() {
+        return startAlarmId;
     }
 
-    public void setAlarmId(int alarmId) {
-        this.alarmId = alarmId;
+    public void setStartAlarmId(int startAlarmId) {
+        this.startAlarmId = startAlarmId;
     }
 
-    public int getYear() {
-        return year;
+    public Date getStartTime() {
+        return startTime;
     }
 
-    public void setYear(int year) {
-        this.year = year;
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
     }
 
-    public int getMonth() {
-        return month;
+    public Date getEndTime() {
+        return endTime;
     }
 
-    public void setMonth(int month) {
-        this.month = month;
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
     }
 
-    public int getDate() {
-        return date;
+    public int getEndAlarmId() {
+        return endAlarmId;
     }
 
-    public void setDate(int date) {
-        this.date = date;
+    public void setEndAlarmId(int endAlarmId) {
+        this.endAlarmId = endAlarmId;
     }
-
-    public int getHour() {
-        return hour;
-    }
-
-    public void setHour(int hour) {
-        this.hour = hour;
-    }
-
-    public int getMinute() {
-        return minute;
-    }
-
-    public void setMinute(int minute) {
-        this.minute = minute;
-    }
-
-    public String getDateString() {
-        return date + " / " + (month + 1) + " / " + year;
-    }
-
-    public String getTimeString() {
-        return hour + " : " + minute;
-    }
-
 }

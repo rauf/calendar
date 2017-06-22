@@ -28,6 +28,10 @@ public class EventManager {
 
         String key = db.push().getKey();
         event.setId(key);
+
+        event.setStartTime(DateTimeManager.toGMT(event.getStartTime()));        //convert to gmt
+        event.setEndTime(DateTimeManager.toGMT(event.getEndTime()));
+
         db.child(key).setValue(event);
         return key;
     }

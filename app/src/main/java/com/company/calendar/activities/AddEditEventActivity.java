@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.company.calendar.R;
 import com.company.calendar.adapters.UserRecyclerViewAdapter;
 import com.company.calendar.managers.AlarmHelper;
+import com.company.calendar.managers.DateTimeManager;
 import com.company.calendar.managers.EventManager;
 import com.company.calendar.managers.EventSubscriptionManager;
 import com.company.calendar.managers.UserManager;
@@ -35,6 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 
 
@@ -51,20 +53,19 @@ public class AddEditEventActivity extends AppCompatActivity {
     private RecyclerView userRecyclerView;
     private EditText titleEditText;
     private EditText descriptionEditText;
-    private TextView dateTextBox;
-    private TextView timeTextBox;
+    private TextView startDateTextBox;
+    private TextView startTimeTextBox;
+    private TextView endDateTextBox;
+    private TextView endTimeTextBox;
     private Button addEventButton;
     private boolean editMode;
     private String eventId;
 
-    private int hour = 0;
-    private int minutes = 0;
+    private Date startTime;
+    private Date endTime;
 
-    private int date = 0;           //day is 1 indexed 1-31
-    private int month = 0;          //month is 0 indexed 0-11
-    private int year = 0;
-
-    private int alarmId;
+    private int startAlarmId;
+    private int endAlarmId;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,20 +78,27 @@ public class AddEditEventActivity extends AppCompatActivity {
         Intent recvIntent = getIntent();
 
         editMode = recvIntent.getBooleanExtra(EDIT_EVENT_MODE, false);
-        alarmId = recvIntent.getIntExtra(Event.ALARM_ID_FIELD, 0);
+        startAlarmId = recvIntent.getIntExtra(Event.START_ALARM_ID_FIELD, 0);
+        endAlarmId = recvIntent.getIntExtra(Event.END_ALARM_ID_FIELD, 0);
 
         if (editMode) {
             eventId = recvIntent.getStringExtra(Event.ID_FIELD);
             populateFieldsFromSavedEvent();
         } else {
             setDateTimeVariablesToCurrent();
-            dateTextBox.setText(getDateString());
-            timeTextBox.setText(getTimeString());
+            startDateTextBox.setText(DateTimeManager.getDateString(startTime));
+            startTimeTextBox.setText(DateTimeManager.getTimeString(startTime));
+
+            endDateTextBox.setText(DateTimeManager.getDateString(endTime));
+            endTimeTextBox.setText(DateTimeManager.getTimeString(endTime));
         }
 
         addEventButton.setOnClickListener(getAddEventButtonOnClickListener());
-        dateTextBox.setOnClickListener(getDateTextBoxOnClickListener());
-        timeTextBox.setOnClickListener(getTimeTextBoxOnClickListener());
+        startDateTextBox.setOnClickListener(getDateTextBoxOnClickListener(true));
+        startTimeTextBox.setOnClickListener(getTimeTextBoxOnClickListener(true));
+
+        endDateTextBox.setOnClickListener(getDateTextBoxOnClickListener(false));
+        endTimeTextBox.setOnClickListener(getTimeTextBoxOnClickListener(false));
     }
 
     @NonNull
@@ -104,21 +112,21 @@ public class AddEditEventActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private View.OnClickListener getTimeTextBoxOnClickListener() {
+    private View.OnClickListener getTimeTextBoxOnClickListener(final boolean start) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showTimePicker();
+                showTimePicker(start);
             }
         };
     }
 
     @NonNull
-    private View.OnClickListener getDateTextBoxOnClickListener() {
+    private View.OnClickListener getDateTextBoxOnClickListener(final boolean start) {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDatePicker();
+                showDatePicker(start);
             }
         };
     }
@@ -149,13 +157,14 @@ public class AddEditEventActivity extends AppCompatActivity {
         titleEditText.setText(event.getTitle());
         descriptionEditText.setText(event.getDescription());
 
-        hour = event.getHour();
-        minutes = event.getMinute();
-        year = event.getYear();
-        month = event.getMonth();
-        date = event.getDate();
-        dateTextBox.setText(getDateString());
-        timeTextBox.setText(getTimeString());
+        startTime = DateTimeManager.gmttoLocalDate(event.getStartTime());
+        endTime = DateTimeManager.gmttoLocalDate(event.getEndTime());
+
+        startDateTextBox.setText(DateTimeManager.getDateString(startTime));
+        startTimeTextBox.setText(DateTimeManager.getTimeString(startTime));
+
+        endTimeTextBox.setText(DateTimeManager.getTimeString(endTime));
+        endDateTextBox.setText(DateTimeManager.getDateString(endTime));
     }
 
     private void handleEventButtonClick() {
@@ -164,6 +173,16 @@ public class AddEditEventActivity extends AppCompatActivity {
 
         if (title.length() == 0) {
             Toast.makeText(AddEditEventActivity.this, "Title is Empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (startTime.after(endTime)) {
+            Toast.makeText(AddEditEventActivity.this, "Start Time is after End Time", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (startTime.equals(endTime)) {
+            Toast.makeText(AddEditEventActivity.this, "Start Time is equal to End Time", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -178,14 +197,17 @@ public class AddEditEventActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot data) {
 
-                int alarmId = data.getValue(Integer.class);
-                alarmCounter.setValue(alarmId + 1);
+                int startAlarmId = data.getValue(Integer.class);
+                int endAlarmId = startAlarmId + 1;
 
-                Event event = new Event(title, description, currUser, alarmId, year, month, date, hour, minutes);
+                alarmCounter.setValue(endAlarmId + 1);
+
+                Event event = new Event("",title, description, currUser, startAlarmId, endAlarmId, startTime, endTime);
 
                 if (editMode) {
                     EventManager.deleteEvent(AddEditEventActivity.this, eventId, editMode);
-                    AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.alarmId);
+                    AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.startAlarmId);
+                    AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.endAlarmId);
                 }
                 String key = EventManager.addEventToDb(event);
 
@@ -231,56 +253,75 @@ public class AddEditEventActivity extends AppCompatActivity {
     }
 
 
-    private void showTimePicker() {
+    private void showTimePicker(final boolean forStart) {
+
+        int currHour = DateTimeManager.getHour(endTime);
+        int currMin = DateTimeManager.getMinute(endTime);
+
+        if (forStart) {
+            currHour = DateTimeManager.getHour(startTime);
+            currMin = DateTimeManager.getMinute(startTime);
+        }
         TimePickerDialog timePickerDialog = new TimePickerDialog(AddEditEventActivity.this, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                hour = hourOfDay;
-                AddEditEventActivity.this.minutes = minute;
-                timeTextBox.setText(getTimeString());
+
+                if (forStart) {
+                    startTime = DateTimeManager.setTime(startTime, hourOfDay, minute);
+                    startTimeTextBox.setText(DateTimeManager.getTimeString(startTime));
+                } else {
+                    endTime = DateTimeManager.setTime(endTime, hourOfDay, minute);
+                    endTimeTextBox.setText(DateTimeManager.getTimeString(endTime));
+                }
             }
-        }, hour, minutes, false);
+        }, currHour, currMin, false);
         timePickerDialog.setTitle("Select Time");
         timePickerDialog.show();
     }
 
-    private void showDatePicker() {
+    private void showDatePicker(final boolean forStart) {
+
+        int currYear = DateTimeManager.getYear(endTime);
+        int currMonth = DateTimeManager.getMonth(endTime);
+        int currDay = DateTimeManager.getDay(endTime);
+
+        if (forStart) {
+            currYear = DateTimeManager.getYear(startTime);
+            currMonth = DateTimeManager.getMonth(startTime);
+            currDay = DateTimeManager.getDay(startTime);
+        }
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(AddEditEventActivity.this, new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                AddEditEventActivity.this.year = year;
-                AddEditEventActivity.this.month = month;
-                AddEditEventActivity.this.date = dayOfMonth;
-                dateTextBox.setText(getDateString());
+
+                if (forStart) {
+                    startTime = DateTimeManager.setDate(startTime, year, month, dayOfMonth);
+                    startDateTextBox.setText(DateTimeManager.getDateString(startTime));
+                } else {
+                    endTime = DateTimeManager.setDate(endTime, year, month, dayOfMonth);
+                    endDateTextBox.setText(DateTimeManager.getDateString(endTime));
+                }
             }
-        }, year, month, date);
+        }, currYear, currMonth, currDay);
         datePickerDialog.setTitle("Select Date");
         datePickerDialog.show();
     }
 
     private void setDateTimeVariablesToCurrent() {
         Calendar rightNow = Calendar.getInstance();
-        hour = rightNow.get(Calendar.HOUR_OF_DAY);
-        minutes = rightNow.get(Calendar.MINUTE);
-        date = rightNow.get(Calendar.DAY_OF_MONTH);
-        month = rightNow.get(Calendar.MONTH);
-        year = rightNow.get(Calendar.YEAR);
-    }
-
-    private String getDateString() {
-        return date + " / " + (month + 1) + " / " + year;
-    }
-
-    private String getTimeString() {
-        return hour + " : " + minutes;
+        startTime = rightNow.getTime();
+        endTime = rightNow.getTime();
     }
 
     private void initialiseViews() {
         userRecyclerView = (RecyclerView) findViewById(R.id.userRecyclerView);
         titleEditText = (EditText) findViewById(R.id.titleEditText);
         descriptionEditText = (EditText) findViewById(R.id.descriptionEditText);
-        dateTextBox = (TextView) findViewById(R.id.dateTextBox);
-        timeTextBox = (TextView) findViewById(R.id.timeTextBox);
+        startDateTextBox = (TextView) findViewById(R.id.startDateTextBox);
+        startTimeTextBox = (TextView) findViewById(R.id.startTimeTextBox);
         addEventButton = (Button) findViewById(R.id.addEvent);
+        endDateTextBox = (TextView) findViewById(R.id.endDateTextBox);
+        endTimeTextBox = (TextView) findViewById(R.id.endTimeTextBox);
     }
 }
