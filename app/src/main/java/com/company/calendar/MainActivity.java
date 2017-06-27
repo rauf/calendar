@@ -29,6 +29,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -36,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseUser firebaseUser;
-    private String userName;
     private RecyclerView confirmedEventsRecyclerView;
     private RecyclerView pendingEventsRecyclerView;
     private Button addEventButton;
@@ -45,9 +46,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //firebase offline
-        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
@@ -60,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         } else {
-            userName = firebaseUser.getDisplayName();
+            String userName = firebaseUser.getDisplayName();
         }
 
         addEventButton.setOnClickListener(getAddEventButtonOnClickListener());
@@ -86,17 +84,17 @@ public class MainActivity extends AppCompatActivity {
 
     void updateLists() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
-        final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
-        ref.addValueEventListener(
-                new ValueEventListener() {
+        ref.
+                addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
 
                         final ArrayList<Event> gEvents = new ArrayList<>();
                         final ArrayList<Event> pEvents = new ArrayList<>();
+                        final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
-                        if (dataSnapshot == null) {
+                        if (dataSnapshot == null || !dataSnapshot.exists()) {
                             setRecyclerViews(gEvents, pEvents);
                             return;
                         }
@@ -104,11 +102,12 @@ public class MainActivity extends AppCompatActivity {
                         for (final DataSnapshot sub : dataSnapshot.getChildren()) {
                             final EventSubscription eventSubscription = sub.getValue(EventSubscription.class);
 
-                            if (!eventSubscription.getUserEmail().equals(currUser)) {
+                            Map<String, String> userSubs = eventSubscription.getSubs();
+
+                            if (!userSubs.containsKey(currUser)) {
                                 continue;
                             }
-                            DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
-                            filterEvents(gEvents, pEvents, eventSubscription, eventRef);
+                            filterEvents(gEvents, pEvents, currUser, userSubs, sub.getKey());
                         }
                     }
 
@@ -119,35 +118,42 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void filterEvents(final ArrayList<Event> gEvents, final ArrayList<Event> pEvents, final EventSubscription eventSubscription, DatabaseReference eventRef) {
-        eventRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+    private void filterEvents(final ArrayList<Event> gEvents, final ArrayList<Event> pEvents, final String currUser, final Map<String, String> userSubs, String key) {
 
-                for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    final Event ev = snap.getValue(Event.class);
+        DatabaseReference eventRef = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
-                    if (!ev.getId().equals(eventSubscription.getEventId())) {
-                        continue;
+        eventRef
+                .orderByKey()
+                .equalTo(key)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        final Iterator<DataSnapshot> itr = dataSnapshot.getChildren().iterator();
+                        Event ev;
+
+                        if (itr.hasNext()) {
+                            ev = itr.next().getValue(Event.class);
+                        } else {
+                            return;
+                        }
+
+                        if (userSubs.get(currUser).equals(Event.GOING)) {
+                            AlarmHelper.setAlarm(MainActivity.this, ev);
+                            gEvents.add(ev);
+                        } else {
+                            AlarmHelper.cancelAlarm(MainActivity.this, ev.getStartAlarmId());        //cancel alarms for pending events
+                            AlarmHelper.cancelAlarm(MainActivity.this, ev.getEndAlarmId());
+                            pEvents.add(ev);
+                        }
+                        setRecyclerViews(gEvents, pEvents);
                     }
 
-                    if (eventSubscription.getStatus().equals(Event.GOING)) {
-                        AlarmHelper.setAlarm(MainActivity.this, ev);
-                        gEvents.add(ev);
-                    } else {
-                        AlarmHelper.cancelAlarm(MainActivity.this, ev.getStartAlarmId());        //cancel alarms for pending events
-                        AlarmHelper.cancelAlarm(MainActivity.this, ev.getEndAlarmId());
-                        pEvents.add(ev);
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
                     }
-                }
-                setRecyclerViews(gEvents, pEvents);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+                });
     }
 
     private void setRecyclerViews(ArrayList<Event> gEvents, ArrayList<Event> pEvents) {
@@ -159,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
         confirmedEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         pendingEventsRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
     }
-
 
     @Override
     protected void onStart() {

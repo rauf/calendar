@@ -1,9 +1,14 @@
 package com.company.calendar.models;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
+import java.util.Map;
+
 /**
  * Created by abdul on 17-Jun-17.
  */
 
+@IgnoreExtraProperties
 public class EventSubscription {
 
     public static String EVENT_SUBSCRIPTION_TABLE = "event_subscription";
@@ -12,41 +17,21 @@ public class EventSubscription {
     public static String EVENT_ID_FIELD = "eventId";
     public static String STATUS_FIELD = "status";
 
-    private String userEmail;
-    private String eventId;
-    private String status;
+    private Map<String, String> subs;       //for email to status
 
     public EventSubscription() {
         //required
     }
 
-    public EventSubscription(String userEmail, String eventId, String status) {
-        this.userEmail = userEmail;
-        this.eventId = eventId;
-        this.status = status;
+    public EventSubscription(Map<String, String> subs) {
+        this.subs = subs;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public Map<String, String> getSubs() {
+        return subs;
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
-
-    public String getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(String eventId) {
-        this.eventId = eventId;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+    public void setSubs(Map<String, String> subs) {
+        this.subs = subs;
     }
 }

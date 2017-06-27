@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 
 import com.company.calendar.R;
+import com.company.calendar.models.Event;
 import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
 import com.google.firebase.database.DataSnapshot;
@@ -17,6 +18,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created by abdul on 18-Jun-17.
@@ -33,29 +35,39 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         this.selectedUsers = new SparseBooleanArray();
 
         if (editMode) {
-            DatabaseReference events = FirebaseDatabase.getInstance().getReference()
-                    .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
-
-            for (int i = 0; i < userList.size(); ++i) {
-                final User user = userList.get(i);
-                final int finalI = i;
-                preselectUsers(eventId, events, user, finalI);
-            }
+            preselectUser(eventId);
         }
     }
 
-    private void preselectUsers(final String eventId, DatabaseReference events, final User user, final int finalI) {
-        events.addListenerForSingleValueEvent(new ValueEventListener() {
+    private void preselectUser(final String eventId) {
+
+        DatabaseReference events = FirebaseDatabase.getInstance().getReference()
+                .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+
+        events
+                .orderByKey()
+                .equalTo(eventId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+
+                EventSubscription subscription = dataSnapshot.getChildren().iterator().next().getValue(EventSubscription.class);
+                Map<String, String> map = subscription.getSubs();
+
+                for (int i = 0; i < userList.size(); ++i) {
+                    User user = userList.get(i);
+                    if (map.containsKey(user.getEmail())) {
+                        toggleSelection(i);
+                    }
+                }
+                /*for (DataSnapshot snap : dataSnapshot.getChildren()) {
                     EventSubscription sub = snap.getValue(EventSubscription.class);
 
                     if (user.getEmail().equals(sub.getUserEmail()) &&
                             sub.getEventId().equals(eventId)) {
                         toggleSelection(finalI);
                     }
-                }
+                }*/
             }
 
             @Override

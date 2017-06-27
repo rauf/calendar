@@ -26,7 +26,12 @@ import com.company.calendar.managers.EventSubscriptionManager;
 import com.company.calendar.managers.UserManager;
 import com.company.calendar.models.AlarmCounter;
 import com.company.calendar.models.Event;
+import com.company.calendar.models.EventSubscription;
 import com.company.calendar.models.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -34,10 +39,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -134,23 +145,25 @@ public class AddEditEventActivity extends AppCompatActivity {
     private void populateFieldsFromSavedEvent() {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
 
-        db.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    Event event = snap.getValue(Event.class);
+        db.orderByKey()
+                .equalTo(eventId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                            Event event = snap.getValue(Event.class);
 
-                    if (event.getId().equals(eventId)) {
-                        setFieldsFromEvent(event);
+                            if (event.getId().equals(eventId)) {
+                                setFieldsFromEvent(event);
+                            }
+                        }
                     }
-                }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(AddEditEventActivity.this, "Database call failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(AddEditEventActivity.this, "Database call failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void setFieldsFromEvent(Event event) {
@@ -187,12 +200,127 @@ public class AddEditEventActivity extends AppCompatActivity {
         }
 
         final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());    //encoding as firebase doen not supoort '.' in its path
-        final DatabaseReference alarmCounter = FirebaseDatabase.getInstance().getReference()
-                .child(AlarmCounter.ALARM_COUNTER_FIELD);
-        addOrUpdateEvent(title, description, currUser, alarmCounter);
+        addOrUpdateEvent(title, description, currUser);
     }
 
-    private void addOrUpdateEvent(final String title, final String description, final String currUser, final DatabaseReference alarmCounter) {
+    private void addOrUpdateEvent(final String title, final String description, final String currUser) {
+
+        final Event event = new Event("", title, description, currUser, startAlarmId, endAlarmId, startTime, endTime);
+
+        event.setStartTime(DateTimeManager.toGMT(event.getStartTime()));        //convert to gmt
+        event.setEndTime(DateTimeManager.toGMT(event.getEndTime()));
+
+
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //Toast.makeText(AddEditEventActivity.this, "Startting thread", Toast.LENGTH_SHORT).show();
+                performOperation(currUser, event);
+            }
+        });
+        t.start();
+    }
+
+    private void displayOnUiThread(final String str) {
+        AddEditEventActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(AddEditEventActivity.this, str, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void performOperation(final String currUser, final Event event) {
+        final Set<String> collisionUsers = new HashSet<>();
+        final Task<ArrayList<String>> getEventSubTask = getEventsSubscription(collisionUsers);
+
+        ArrayList<String> eventSubList = null;
+        try {
+            eventSubList = Tasks.await(getEventSubTask);
+
+            final Task<Event>[] tasks = new Task[eventSubList.size()];
+
+            for (int i = 0; i < tasks.length; i++) {
+                tasks[i] = getSingleEventTask(eventSubList.get(i));
+            }
+
+            Tasks.whenAll(tasks).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+
+                    ArrayList<Event> eventsList = new ArrayList<>();
+
+                    for (Task<Event> task1 : tasks) {
+                        eventsList.add(task1.getResult());
+                    }
+
+                    if (eventsList.isEmpty()) {
+                        postToDb(currUser, event);
+                        return;
+                    }
+
+                    if (checkIfDatesColliding(eventsList, event)) {
+                        final Date next = DateTimeManager.gmttoLocalDate(DateTimeManager.getNextTime(eventsList, event));
+                        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                        final String colliUsers = createStringFromSet(collisionUsers);
+
+                        AddEditEventActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(AddEditEventActivity.this, "your current schedule is colliding with " + colliUsers +
+                                        " You can reschedule your event at " + sdf.format(next), Toast.LENGTH_LONG).show();
+                            }
+                        });
+
+                    } else {
+                        postToDb(currUser, event);
+                    }
+                }
+
+            });
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String createStringFromSet(Set<String> collisionUsers) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+
+        for (String s : collisionUsers) {
+            sb.append(User.decodeString(s));
+            if (i != collisionUsers.size() - 1)
+                sb.append(", ");
+            i++;
+        }
+        return sb.toString();
+    }
+
+    private Task<Event> getSingleEventTask(String s) {
+        final TaskCompletionSource<Event> tcs = new TaskCompletionSource<>();
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(Event.EVENT_TABLE);
+
+        ref.child(s).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Event event = dataSnapshot.getValue(Event.class);
+                tcs.setResult(event);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                tcs.setException(databaseError.toException());
+            }
+        });
+        return tcs.getTask();
+    }
+
+    private void postToDb(final String currUser, final Event event) {
+
+        final DatabaseReference alarmCounter = FirebaseDatabase.getInstance().getReference()
+                .child(AlarmCounter.ALARM_COUNTER_FIELD);
+
         alarmCounter.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot data) {
@@ -200,33 +328,103 @@ public class AddEditEventActivity extends AppCompatActivity {
                 int startAlarmId = data.getValue(Integer.class);
                 int endAlarmId = startAlarmId + 1;
 
+                event.setStartAlarmId(startAlarmId);
+                event.setEndAlarmId(endAlarmId);
                 alarmCounter.setValue(endAlarmId + 1);
-
-                Event event = new Event("",title, description, currUser, startAlarmId, endAlarmId, startTime, endTime);
 
                 if (editMode) {
                     EventManager.deleteEvent(AddEditEventActivity.this, eventId, editMode);
-                    AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.startAlarmId);
-                    AlarmHelper.cancelAlarm(AddEditEventActivity.this, AddEditEventActivity.this.endAlarmId);
                 }
-                String key = EventManager.addEventToDb(event);
 
-                Toast.makeText(AddEditEventActivity.this, "Alarm Set", Toast.LENGTH_SHORT).show();
-
-                ArrayList<String> invitedUsersEmail = userAdapter.getSelectedUsers();
-                EventSubscriptionManager.addSubscriptionToDb(invitedUsersEmail, key, currUser);
+                String key = EventManager.addEventToDb(AddEditEventActivity.this, event);
+                displayOnUiThread("Alarm Set");
+                EventSubscriptionManager.addSubscriptionToDb(userAdapter.getSelectedUsers(), key, currUser);
                 finish();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(AddEditEventActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
+                displayOnUiThread("Call to database failed");
             }
         });
     }
 
+
+    private boolean checkIfDatesColliding(ArrayList<Event> events, Event currEvent) {
+        ArrayList<Event> copEvents = new ArrayList<>(events);
+        copEvents.add(currEvent);
+
+        Collections.sort(copEvents, new Comparator<Event>() {       //sort by start time
+            @Override
+            public int compare(Event o1, Event o2) {
+                return o1.getStartTime().compareTo(o2.getStartTime());
+            }
+        });
+
+        for (int i = 1; i < copEvents.size(); i++) {            //check if collision is there
+            if (copEvents.get(i).getStartTime().before(copEvents.get(i - 1).getEndTime())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Task<ArrayList<String>> getEventsSubscription(final Set<String> collisionsUsers) {
+
+        final TaskCompletionSource<ArrayList<String>> tcs = new TaskCompletionSource<>();
+
+        final ArrayList<String> allSubs = new ArrayList<>();
+        final ArrayList<String> invitedUsers = userAdapter.getSelectedUsers();
+
+        final DatabaseReference eventSubReference = FirebaseDatabase.getInstance().getReference()
+                .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+
+        eventSubReference
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        if (!dataSnapshot.exists()) {
+                            tcs.setResult(allSubs);
+                            return;
+                        }
+
+                        for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                            EventSubscription currSub = snap.getValue(EventSubscription.class);
+                            String subKey = snap.getKey();
+
+                            if (editMode && subKey.equals(eventId)) {     //skip the current event in the database, otherwise it will always collide
+                                continue;
+                            }
+
+                            Map<String, String> map = currSub.getSubs();
+
+                            boolean cont = true;
+
+                            for (int i = 0; i < invitedUsers.size(); i++) { //this is one of the subscriptions we are interested in
+                                if (map.containsKey(invitedUsers.get(i)) && map.get(invitedUsers.get(i)).equals(Event.GOING)) {
+                                    cont = false;
+                                    collisionsUsers.add(invitedUsers.get(i));
+                                }
+                            }
+                            if (cont) continue;
+
+                            allSubs.add(snap.getKey());
+                        }
+                        tcs.setResult(allSubs);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        tcs.setException(databaseError.toException());
+                    }
+                });
+        return tcs.getTask();
+    }
+
+
     void setUserList() {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("users");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(User.USER_TABLE);
         ref.addValueEventListener(
                 new ValueEventListener() {
                     @Override

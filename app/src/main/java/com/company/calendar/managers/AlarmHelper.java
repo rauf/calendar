@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 import com.company.calendar.models.Event;
 import com.company.calendar.receivers.AlarmReceiver;

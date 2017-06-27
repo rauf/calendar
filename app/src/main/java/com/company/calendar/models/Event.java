@@ -26,7 +26,6 @@ public class Event {
     public static final String END_ALARM_ID_FIELD = "endAlarmId";
 
     private String id;
-    //check date and time compatibility with firebase
 
     private String title;
     private String description;
@@ -38,12 +37,6 @@ public class Event {
     private Date startTime;
     private Date endTime;
 
-   /* private int year;
-    private int month;
-    private int date;
-    private int hour;
-    private int minute;
-*/
     public Event() {
         //required. Do not delete
     }

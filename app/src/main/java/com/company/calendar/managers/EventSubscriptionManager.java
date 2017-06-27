@@ -7,6 +7,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -19,29 +20,15 @@ public class EventSubscriptionManager {
         //private, cannot be instantiated
     }
 
-    public static void addSubscriptionToDb(ArrayList<String> users, String eventId, String currUser) {
+    public static void addSubscriptionToDb(ArrayList<String> users, String key, String currUser) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 
+        Map<String, String> subs = new HashMap<>();
+
         for (String usr : users) {
-            String key = db.push().getKey();
-            final EventSubscription subscription = new EventSubscription(usr, eventId, Event.UNCONFIRMED);
-            db.child(key).setValue(subscription);
+            subs.put(usr, Event.UNCONFIRMED);
         }
-        //add current user as confirmed
-        String k = db.push().getKey();
-        db.child(k).setValue(new EventSubscription(currUser, eventId, Event.GOING));
-    }
-
-    public static ArrayList<EventSubscription> filterCurrentUserSubs(ArrayList<EventSubscription> allSubs, String currUser) {
-
-        currUser = User.encodeString(currUser);
-        ArrayList<EventSubscription> fileredList = new ArrayList<>();
-
-        for (EventSubscription sub : allSubs) {
-            if (sub.getUserEmail().equals(currUser)) {
-                fileredList.add(sub);
-            }
-        }
-        return fileredList;
+        subs.put(currUser, Event.GOING);
+        db.child(key).setValue(new EventSubscription(subs));
     }
 }

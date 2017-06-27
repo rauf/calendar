@@ -94,8 +94,15 @@ public class EventInfoActivity extends AppCompatActivity {
         return new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EventManager.deleteEvent(EventInfoActivity.this, eventId, false);
-                finish();
+
+                String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
+
+                if (ownerEmail.equals(currUser)) {
+                    EventManager.deleteEvent(EventInfoActivity.this, eventId, false);
+                    finish();
+                } else {
+                    Toast.makeText(EventInfoActivity.this, "You are not the owner of this event", Toast.LENGTH_SHORT).show();
+                }
             }
         };
     }
@@ -127,27 +134,28 @@ public class EventInfoActivity extends AppCompatActivity {
                 final String status = getStatusFromRadioSelect(selectedId);
                 final String currUser = User.encodeString(FirebaseAuth.getInstance().getCurrentUser().getEmail());
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference()
-                                .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
+                        .child(EventSubscription.EVENT_SUBSCRIPTION_TABLE);
 
-                ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                            String email = (String) snap.child(EventSubscription.USER_EMAIL_FIELD).getValue();
-                            String evId = (String) snap.child(EventSubscription.EVENT_ID_FIELD).getValue();
+                ref
+                        .orderByKey()
+                        .equalTo(eventId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
 
-                            if (email.equals(currUser) && evId.equals(eventId)) {
-                                snap.child(EventSubscription.STATUS_FIELD).getRef().setValue(status);
+                                DataSnapshot snap = dataSnapshot.getChildren().iterator().next();
+                                EventSubscription sub = snap.getValue(EventSubscription.class);
+
+                                Map<String, String> map = sub.getSubs();
+                                map.put(currUser, status);
+                                snap.getRef().child("subs").setValue(map);
                             }
-                        }
-                        //Toast.makeText(EventInfoActivity.this, "Your response is saved", Toast.LENGTH_SHORT).show();
-                    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Toast.makeText(EventInfoActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                Toast.makeText(EventInfoActivity.this, "Call to database failed", Toast.LENGTH_SHORT).show();
+                            }
+                        });
             }
         };
     }
@@ -173,15 +181,19 @@ public class EventInfoActivity extends AppCompatActivity {
         final Map<String, ArrayList<String>> map = new HashMap<>();
 
         ref
-                //.equalTo(event)
-                .addValueEventListener(new ValueEventListener() {
+                .orderByKey()
+                .equalTo(eventId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        map.clear();
-                        for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                            createStatusMap(snap, event, currUser, map);
+                        if (!dataSnapshot.exists()) {
+                            return;
                         }
-                        otherUsersInfo.setText(buildStringFromMap(map));
+
+                        EventSubscription sub = dataSnapshot.getChildren().iterator().next().getValue(EventSubscription.class);
+
+                        Map<String, String> subscriptions = sub.getSubs();
+                        otherUsersInfo.setText(buildStringFromMap(subscriptions, currUser));
                     }
 
                     @Override
@@ -192,9 +204,28 @@ public class EventInfoActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private String buildStringFromMap(Map<String, ArrayList<String>> map) {
+    private String buildStringFromMap(Map<String, String> subscriptions, String currUser) {
         StringBuilder sb = new StringBuilder();
 
+        Map<String, ArrayList<String>> map = new HashMap<>();
+
+        for (Map.Entry<String, String> entry : subscriptions.entrySet()) {
+
+            if (entry.getKey().equals(currUser)) {
+                updataRadioButtons(entry.getValue());
+                continue;
+            }
+
+            if (!map.containsKey(entry.getValue())) {
+                ArrayList<String> list = new ArrayList<>();
+                list.add(entry.getKey());
+                map.put(entry.getValue(), list);
+            } else {
+                ArrayList<String> list = map.get(entry.getValue());
+                list.add(entry.getKey());
+                map.put(entry.getValue(), list);
+            }
+        }
         for (Map.Entry<String, ArrayList<String>> entry : map.entrySet()) {
 
             String key = entry.getKey();
@@ -214,24 +245,6 @@ public class EventInfoActivity extends AppCompatActivity {
             sb.append('\n');
         }
         return sb.toString();
-    }
-
-    private void createStatusMap(DataSnapshot snap, String event, String currUser, Map<String, ArrayList<String>> map) {
-        EventSubscription sub = snap.getValue(EventSubscription.class);
-
-        if (sub.getEventId().equals(event) && sub.getUserEmail().equals(currUser)) {
-            updataRadioButtons(sub.getStatus());
-        } else if (sub.getEventId().equals(event)) {
-            if (map.containsKey(sub.getStatus())) {
-                ArrayList<String> list = map.get(sub.getStatus());
-                list.add(sub.getUserEmail());
-                map.put(sub.getStatus(), list);
-            } else {
-                ArrayList<String> list = new ArrayList<>();
-                list.add(sub.getUserEmail());
-                map.put(sub.getStatus(), list);
-            }
-        }
     }
 
     private void updataRadioButtons(String status) {
@@ -265,7 +278,7 @@ public class EventInfoActivity extends AppCompatActivity {
                                 descriptionInfo.setText(ev.getDescription());
                                 ownerInfo.setText(User.decodeString(ev.getOwnerEmail()));
                                 dateInfo.setText(DateTimeManager.getDateString(DateTimeManager.gmttoLocalDate(ev.getStartTime())) +
-                                        "  -  "  + DateTimeManager.getDateString(DateTimeManager.gmttoLocalDate(ev.getEndTime())));
+                                        "  -  " + DateTimeManager.getDateString(DateTimeManager.gmttoLocalDate(ev.getEndTime())));
                                 timeInfo.setText(DateTimeManager.getTimeString(DateTimeManager.gmttoLocalDate(ev.getStartTime())) +
                                         "  -  " + DateTimeManager.getTimeString(DateTimeManager.gmttoLocalDate(ev.getEndTime())));
                             }
