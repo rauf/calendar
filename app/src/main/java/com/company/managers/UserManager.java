@@ -1,6 +1,6 @@
-package com.company.calendar.managers;
+package com.company.managers;
 
-import com.company.calendar.models.User;
+import com.company.models.User;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 

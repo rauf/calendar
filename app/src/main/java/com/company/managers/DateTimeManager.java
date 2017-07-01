@@ -1,8 +1,7 @@
-package com.company.calendar.managers;
+package com.company.managers;
 
-import com.company.calendar.models.Event;
+import com.company.models.Event;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;

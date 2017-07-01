@@ -1,8 +1,7 @@
-package com.company.calendar.managers;
+package com.company.managers;
 
-import com.company.calendar.models.Event;
-import com.company.calendar.models.EventSubscription;
-import com.company.calendar.models.User;
+import com.company.models.Event;
+import com.company.models.EventSubscription;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 

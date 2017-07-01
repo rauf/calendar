@@ -1,11 +1,11 @@
-package com.company.calendar.managers;
+package com.company.managers;
 
 import android.content.Context;
 import android.widget.Toast;
 
-import com.company.calendar.models.Event;
-import com.company.calendar.models.EventSubscription;
-import com.company.calendar.models.User;
+import com.company.models.Event;
+import com.company.models.EventSubscription;
+import com.company.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

@@ -1,4 +1,4 @@
-package com.company.calendar.adapters;
+package com.company.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseBooleanArray;
@@ -7,10 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 
-import com.company.calendar.R;
-import com.company.calendar.models.Event;
-import com.company.calendar.models.EventSubscription;
-import com.company.calendar.models.User;
+import com.company.R;
+import com.company.models.EventSubscription;
+import com.company.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -52,7 +51,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 EventSubscription subscription = dataSnapshot.getChildren().iterator().next().getValue(EventSubscription.class);
-                Map<String, String> map = subscription.getSubs();
+                Map<String, String> map = subscription.getSubs() ;
 
                 for (int i = 0; i < userList.size(); ++i) {
                     User user = userList.get(i);

@@ -1,4 +1,4 @@
-package com.company.calendar.adapters;
+package com.company.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,10 +9,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.company.calendar.R;
-import com.company.calendar.activities.EventInfoActivity;
-import com.company.calendar.models.Event;
-import com.company.calendar.models.User;
+import com.company.activities.EventInfoActivity;
+import com.company.R;
+import com.company.models.Event;
+import com.company.models.User;
 
 import java.util.ArrayList;
 

@@ -15,13 +15,21 @@
       },
       "oauth_client": [
         {
-          "client_id": "46568666672-0enmm5vdr5ocip9lck85fsc94e61ghg0.apps.googleusercontent.com",
+          "client_id": "46568666672-urvt4s110e0glgmcempms8ofg7tamjuc.apps.googleusercontent.com",
           "client_type": 3
+        },
+        {
+          "client_id": "46568666672-kjholkrbltrf5bh5oifbjjrjm3b3kniu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company",
+            "certificate_hash": "0b52c1758814dc28d13a02711c787fcbd9df7cf5"
+          }
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCEiyvMOO1N4bVBJo0k9FVI2WMZfL0hCao"
+          "current_key": "AIzaSyAIKdAt310vdF6rVdE657QhQpTVrWcgyi8"
         }
       ],
       "services": {
@@ -29,8 +37,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "46568666672-urvt4s110e0glgmcempms8ofg7tamjuc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2
@@ -46,21 +59,13 @@
       },
       "oauth_client": [
         {
-          "client_id": "46568666672-rv0oiqt01ckk4hcr52s7bcjj8tsqe36g.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.company.calendar",
-            "certificate_hash": "9530bfe68cbee12d5c6e4edaf1303f9a25560456"
-          }
-        },
-        {
-          "client_id": "46568666672-0enmm5vdr5ocip9lck85fsc94e61ghg0.apps.googleusercontent.com",
+          "client_id": "46568666672-urvt4s110e0glgmcempms8ofg7tamjuc.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCEiyvMOO1N4bVBJo0k9FVI2WMZfL0hCao"
+          "current_key": "AIzaSyAIKdAt310vdF6rVdE657QhQpTVrWcgyi8"
         }
       ],
       "services": {
@@ -68,13 +73,8 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 2,
-          "other_platform_oauth_client": [
-            {
-              "client_id": "46568666672-0enmm5vdr5ocip9lck85fsc94e61ghg0.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "status": 1,
+          "other_platform_oauth_client": []
         },
         "ads_service": {
           "status": 2

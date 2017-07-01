@@ -1,4 +1,4 @@
-package com.company.calendar.models;
+package com.company.models;
 
 import com.google.firebase.database.IgnoreExtraProperties;
 

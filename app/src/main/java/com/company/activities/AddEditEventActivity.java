@@ -1,4 +1,4 @@
-package com.company.calendar.activities;
+package com.company.activities;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -17,17 +17,16 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.company.calendar.R;
-import com.company.calendar.adapters.UserRecyclerViewAdapter;
-import com.company.calendar.managers.AlarmHelper;
-import com.company.calendar.managers.DateTimeManager;
-import com.company.calendar.managers.EventManager;
-import com.company.calendar.managers.EventSubscriptionManager;
-import com.company.calendar.managers.UserManager;
-import com.company.calendar.models.AlarmCounter;
-import com.company.calendar.models.Event;
-import com.company.calendar.models.EventSubscription;
-import com.company.calendar.models.User;
+import com.company.adapters.UserRecyclerViewAdapter;
+import com.company.R;
+import com.company.managers.DateTimeManager;
+import com.company.managers.EventManager;
+import com.company.managers.EventSubscriptionManager;
+import com.company.managers.UserManager;
+import com.company.models.AlarmCounter;
+import com.company.models.Event;
+import com.company.models.EventSubscription;
+import com.company.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;

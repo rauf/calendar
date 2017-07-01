@@ -1,4 +1,4 @@
-package com.company.calendar;
+package com.company;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,13 +12,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.company.calendar.activities.AddEditEventActivity;
-import com.company.calendar.activities.SignInActivity;
-import com.company.calendar.adapters.EventRecyclerViewAdapter;
-import com.company.calendar.managers.AlarmHelper;
-import com.company.calendar.models.Event;
-import com.company.calendar.models.EventSubscription;
-import com.company.calendar.models.User;
+import com.company.activities.SignInActivity;
+import com.company.adapters.EventRecyclerViewAdapter;
+import com.company.activities.AddEditEventActivity;
+import com.company.managers.AlarmHelper;
+import com.company.models.Event;
+import com.company.models.EventSubscription;
+import com.company.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,7 +28,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 

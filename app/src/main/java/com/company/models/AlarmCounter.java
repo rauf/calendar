@@ -1,4 +1,4 @@
-package com.company.calendar.models;
+package com.company.models;
 
 /**
  * Created by abdul on 19-Jun-17.

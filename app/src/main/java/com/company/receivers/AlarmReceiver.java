@@ -1,4 +1,4 @@
-package com.company.calendar.receivers;
+package com.company.receivers;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -9,11 +9,11 @@ import android.content.Intent;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 
-import com.company.calendar.MainActivity;
-import com.company.calendar.R;
-import com.company.calendar.managers.AlarmHelper;
-import com.company.calendar.managers.EventManager;
-import com.company.calendar.models.Event;
+import com.company.MainActivity;
+import com.company.R;
+import com.company.managers.AlarmHelper;
+import com.company.managers.EventManager;
+import com.company.models.Event;
 
 /**
  * Created by abdul on 22-Jun-17.

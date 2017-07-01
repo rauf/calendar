@@ -1,4 +1,4 @@
-package com.company.calendar.activities;
+package com.company.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,9 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.company.calendar.MainActivity;
-import com.company.calendar.R;
-import com.company.calendar.managers.UserManager;
+import com.company.MainActivity;
+import com.company.R;
+import com.company.managers.UserManager;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -85,6 +85,7 @@ public class SignInActivity extends AppCompatActivity implements GoogleApiClient
                 GoogleSignInAccount account = result.getSignInAccount();
                 firebaseAuthWithGoogle(account);
             } else {
+                Log.e(TAG, String.valueOf(result.getStatus().getStatusCode()));
                 Log.e(TAG, "Google Sign In failed.");
             }
         }
